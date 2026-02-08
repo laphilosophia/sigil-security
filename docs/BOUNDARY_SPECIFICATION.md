@@ -1,126 +1,126 @@
 # Sigil — Core Boundary Specification
 
-**Durum:** Normatif
-**Kapsam:** `sigil-core` davranış sınırları
-**Amaç:** Security primitive kalmasını garanti etmek
+**Status:** Normative
+**Scope:** `sigil-core` behavioral boundaries
+**Purpose:** Ensure the library remains a security primitive
 
 ---
 
-## 1. Sistem Tanımı
+## 1. System Definition
 
-`sigil-core`, **stateless kriptografik request doğrulama primitive’idir.**
-Hiçbir koşulda request lifecycle, session, client state veya uygulama akışını yönetmez.
+`sigil-core` is a **stateless cryptographic request authenticity primitive.**
+Under no circumstances does it manage the request lifecycle, session state, client state, or application flow.
 
-Core’un görevi:
+The role of the Core is:
 
-- Kriptografik doğrulama
-- Bağlam bağlılığı (context binding)
-- Replay kontrolü (opsiyonel)
-- Deterministic doğrulama
-- Sabit zamanlı (constant-time) güvenlik
+- Cryptographic validation
+- Context binding
+- Replay control (optional)
+- Deterministic validation
+- Constant-time security
 
-Core **güvenlik mekanizmasıdır, politika motoru değildir.**
+The Core is a **security mechanism, not a policy engine.**
 
 ---
 
-## 2. Core’un YAPMASI GEREKENLER (Allowed Surface)
+## 2. Core MUST do (Allowed Surface)
 
-Core yalnızca aşağıdaki davranışlara sahiptir:
+The Core is restricted to the following behaviors:
 
-### 2.1 Kriptografik Primitive
+### 2.1 Cryptographic Primitives
 
-- Token üretimi
-- Token doğrulama
-- HMAC doğrulama
-- HKDF anahtar türetme
-- Constant-time karşılaştırma
-- Deterministic failure path
+- Token generation
+- Token validation
+- HMAC verification
+- HKDF key derivation
+- Constant-time comparisons
+- Deterministic failure paths
 
-### 2.2 Stateless Doğrulama
+### 2.2 Stateless Validation
 
-- TTL kontrolü
-- Context binding doğrulama
-- Opsiyonel replay (bounded, non-persistent)
+- TTL (Time-to-Live) checks
+- Context binding validation
+- Optional replay detection (bounded, non-persistent)
 
-### 2.3 Saf Fonksiyon Modeli
+### 2.3 Pure Function Model
 
-Core fonksiyonları:
+Core functions must be:
 
 - Deterministic
-- Side-effect free (replay cache hariç)
-- I/O bağımsız
-- Runtime bağımsız
-- Framework bağımsız
+- Side-effect free (excluding ephemeral replay cache)
+- I/O independent
+- Runtime agnostic
+- Framework agnostic
 
 ---
 
-## 3. Core’un YAPMAMASI GEREKENLER (Hard Prohibitions)
+## 3. Core MUST NOT do (Hard Prohibitions)
 
-Aşağıdaki davranışlar **kesinlikle core’a eklenemez.**
+The following behaviors **must never** be added to the Core:
 
-### 3.1 Lifecycle Yönetimi YASAK
+### 3.1 Lifecycle Management PROHIBITED
 
-Core:
+The Core does not:
 
-- Token refresh yapmaz
-- Token rotate etmez
-- Session yönetmez
-- Logout semantiği içermez
-- Client sync yapmaz
-- Multi-tab coordination yapmaz
-- Broadcast / storage kullanmaz
+- Perform token refreshes
+- Manage token rotation
+- Handle session management
+- Contain logout semantics
+- Perform client synchronization
+- Coordinate multiple tabs
+- Utilize BroadcastChannel or storage events
 
-### 3.2 State Orchestration YASAK
+### 3.2 State Orchestration PROHIBITED
 
-Core:
+The Core does not:
 
-- Session store kullanmaz
-- Distributed state yönetmez
-- Persistence içermez
-- Revocation list tutmaz (ephemeral replay hariç)
-- Global state taşımaz
+- Use a session store
+- Manage distributed state
+- Include persistence
+- Maintain revocation lists (excluding ephemeral replay cache)
+- Carry global state
 
-### 3.3 Policy Enforcement YASAK
+### 3.3 Policy Enforcement PROHIBITED
 
-Core:
+The Core does not:
 
-- CSRF policy bilmez
-- Browser header bilmez
-- Origin / Fetch Metadata kontrolü yapmaz
-- HTTP semantiği bilmez
-- Client tipi bilmez
-- Request transport bilmez
+- Understand CSRF policies
+- Process browser headers
+- Perform Origin or Fetch Metadata validation
+- Understand HTTP semantics
+- Distinguish between client types
+- Understand request transport mechanisms
 
-Bunlar **policy katmanına aittir.**
+These responsibilities belong to the **Policy Layer.**
 
-### 3.4 Runtime Coupling YASAK
+### 3.4 Runtime Coupling PROHIBITED
 
-Core:
+The Core does not:
 
-- Express / Hono / Oak bilmez
-- HTTP request nesnesi almaz
-- Environment bilmez
-- Config store içermez
-- Logger içermez
-- Metrics içermez
+- Integrate with Express, Hono, Oak, or other frameworks
+- Accept HTTP request objects
+- Understand its environment
+- Include a configuration store
+- Include a logger
+- Include metrics collection
 
-### 3.5 Operational Davranış YASAK
+### 3.5 Operational Behavior PROHIBITED
 
-Core:
+The Core does not:
 
-- Monitoring yapmaz
-- Telemetry üretmez
-- Rate limiting yapmaz
-- Alert üretmez
-- Incident handling içermez
+- Perform monitoring
+- Generate telemetry data
+- Implement rate limiting
+- Generate alerts
+- Include incident handling logic
 
 ---
 
-## 4. Core’un İzin Verilen Tek State’i
+## 4. Only Permitted State
 
-Core yalnızca **ephemeral replay cache** tutabilir.
+The Core may only maintain an **ephemeral replay cache.**
 
-Sınırlar:
+Boundaries:
 
 - TTL-bounded
 - Memory-bounded
@@ -129,112 +129,115 @@ Sınırlar:
 - Fail-open allowed
 - No persistence
 
-Bu cache **güvenlik garantisi değil, optimizasyondur.**
+This cache is an **optimization, not a security guarantee.**
 
 ---
 
-## 5. Policy Katmanına Ait Davranışlar
+## 5. Policy Layer Responsibilities
 
-Aşağıdakiler core dışındadır:
+The following fall outside the scope of the Core:
 
-- CSRF preset
-- Browser vs API ayrımı
-- Fetch Metadata
-- Origin doğrulama
-- Token transport
+- CSRF presets
+- Browser vs. API mode logic
+- Fetch Metadata validation
+- Origin validation
+- Token transport mechanisms
 - Lifecycle orchestration
-- Refresh
-- Logout davranışı
-- Telemetry
-- Distributed replay
+- Refresh logic
+- Logout behavior
+- Telemetry generation
+- Distributed replay detection
 - Rate limiting
-- Observability
+- General observability
 - Deployment logic
 
-Bu davranışlar ayrı paketlerde bulunur.
+These behaviors must reside in separate packages.
 
 ---
 
-## 6. Mimari Katman Sözleşmesi
+## 6. Architectural Layer Contract
 
 ```
 sigil-core      → cryptographic primitive (stateless, pure)
-sigil-policy    → validation policies (csrf, api, browser)
+sigil-policy    → validation policies (CSRF, API, Browser)
 sigil-runtime   → framework adapters
 sigil-ops       → telemetry & monitoring (optional)
-sigil-extended  → distributed / advanced (optional)
+sigil-extended  → distributed / advanced features (optional)
 ```
 
-Core tek başına çalışabilir.
-Hiçbir üst katmana bağımlı değildir.
+The Core is designed to operate independently and has no dependencies on higher layers.
 
 ---
 
-## 7. Tasarım İhlali Kriterleri
+## 7. Design Violation Criteria
 
-Aşağıdaki durumlar **boundary ihlalidir:**
+The following scenarios constitute a **boundary violation:**
 
-- Core request nesnesi alıyorsa
-- Core refresh yönetiyorsa
-- Core distributed state tutuyorsa
-- Core client davranışı biliyorsa
-- Core policy içeriyorsa
-- Core config / runtime bağımlılığı varsa
-- Core I/O yapıyorsa
-- Core observability içeriyorsa
+- The Core accepts a request object.
+- The Core manages refreshes.
+- The Core maintains distributed state.
+- The Core has knowledge of client behavior.
+- The Core contains policy logic.
+- The Core has dependencies on configuration or runtime environments.
+- The Core performs I/O operations.
+- The Core includes observability features.
 
-Bu durumlar projeyi **framework’e dönüştürür.**
-
----
-
-## 8. Genişleme Kuralları
-
-Yeni özellik eklenirken:
-
-Eğer özellik:
-
-- Crypto primitive ise → core’a girebilir
-- Stateless doğrulama ise → core’a girebilir
-- Replay varyasyonu ise → core’a girebilir
-- Side-channel önleme ise → core’a girebilir
-
-Eğer özellik:
-
-- Davranış orkestrasyonu ise → policy
-- State yönetimi ise → extended
-- Deployment ise → runtime
-- Observability ise → ops
-- Client davranışı ise → policy
-
-→ Core’a giremez.
+Such violations transform the project into a **framework** rather than a primitive.
 
 ---
 
-## 9. Core Tasarım İlkeleri
+## 8. Expansion Rules
 
-Core şu özellikleri korumalı:
+When evaluating new features:
 
-- Küçük yüzey alanı
-- Deterministic davranış
-- Sabit zamanlı güvenlik
-- Runtime bağımsızlık
-- Framework bağımsızlık
-- Stateless doğrulama
-- Kriptografik bütünlük
+If the feature is a:
 
-Bu özellikler kaybolursa core kimliğini kaybeder.
+- Cryptographic primitive
+- Stateless validation mechanism
+- Replay detection variation
+- Side-channel mitigation
+
+→ It may be added to the **Core.**
+
+If the feature involves:
+
+- Behavioral orchestration → **Policy Layer**
+- State management → **Extended Layer**
+- Deployment logic → **Runtime Layer**
+- Observability → **Operations Layer**
+- Client behavior → **Policy Layer**
+
+→ It remains outside the Core.
 
 ---
 
-## 10. Nihai Mimari Kimlik
+## 9. Core Design Principles
 
-`sigil-core`:
+The Core must maintain the following:
 
-- CSRF middleware değildir
-- Framework değildir
-- Auth sistemi değildir
-- Session sistemi değildir
+- Minimal surface area
+- Deterministic behavior
+- Constant-time security
+- Runtime independence
+- Framework independence
+- Stateless validation
+- Cryptographic integrity
 
-`sigil-core`:
+Loss of these principles results in the Core losing its architectural identity.
 
-**Cryptographic Request Authenticity Primitive’tir.**
+---
+
+## 10. Final Architectural Identity
+
+`sigil-core` is:
+
+- NOT a CSRF middleware
+- NOT a framework
+- NOT an authentication system
+- NOT a session management system
+
+`sigil-core` is a:
+
+**Cryptographic Request Authenticity Primitive.**
+
+---

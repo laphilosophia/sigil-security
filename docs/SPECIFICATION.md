@@ -1,12 +1,13 @@
 # Sigil-Security: Technical Specification
 
-**Versiyon:** 1.0  
-**Durum:** Production-Ready  
-**Kapsam:** Stateless CSRF Savunma Kütüphanesi
+**Version:** 1.0
+**Status:** Production-Ready
+**Scope:** Stateless CSRF Defense Library
 
 ---
 
-**İçindekiler:**
+**Table of Contents:**
+
 - [Part I: Core Specification](#part-i-core-specification)
 - [Part II: Token Lifecycle](#part-ii-token-lifecycle)
 - [Part III: One-Shot Token Primitive](#part-iii-one-shot-token-primitive)
@@ -14,67 +15,68 @@
 ---
 
 # Part I: Core Specification
-Aşağıdaki metin, modern tarayıcı davranışına ve çoklu runtime hedeflerine göre tasarlanmış stateless, kriptografik doğrulamalı, çok katmanlı bir CSRF savunma kütüphanesi için referans proje dokümanıdır. Metin, uygulama mimarisi, güvenlik modeli, doğrulama katmanları, kriptografi tercihleri, tehdit modeli, araştırma referansları ve geliştirme planını kapsar.
+
+This document serves as the reference specification for a stateless, cryptographically verifiable, multi-layered CSRF defense library designed for modern browser behavior and multiple runtime targets. It covers application architecture, security model, validation layers, cryptographic preferences, threat model, research references, and development plan.
 
 ---
 
-## 1. Amaç ve Kapsam
+## 1. Purpose and Scope
 
-Bu projenin amacı, klasik stateful CSRF middleware yaklaşımının sınırlamalarını ortadan kaldıran, modern tarayıcı güvenlik sinyallerini birincil doğrulama kaynağı olarak kullanan, stateless ve kriptografik olarak doğrulanabilir bir CSRF koruma kütüphanesi üretmektir. Hedef, Node.js, Bun ve Deno runtime’larında aynı çekirdek doğrulama mantığını çalıştırabilen, framework-agnostic bir güvenlik katmanı sağlamaktır.
+The purpose of this project is to produce a CSRF protection library that eliminates the limitations of classical stateful CSRF middleware approaches by using modern browser security signals as the primary validation source, while remaining stateless and cryptographically verifiable. The goal is to provide a framework-agnostic security layer capable of running the same core validation logic across Node.js, Bun, and Deno runtimes.
 
-Bu kütüphane yalnızca token üretip doğrulayan bir middleware değildir. Modern CSRF savunması, token + tarayıcı sinyalleri + istek bağlamı doğrulamasının birleşimidir. Bu nedenle tasarım, çok katmanlı doğrulama prensibine dayanır.
+This library is not merely middleware that generates and validates tokens. Modern CSRF defense is a combination of token + browser signals + request context validation. Therefore, the design is based on the principle of multi-layered validation.
 
 ---
 
-## 2. Tehdit Modeli
+## 2. Threat Model
 
-Korunan tehdit:
+### Protected Threats
 
-- Cross-site authenticated request (klasik CSRF)
-- Cookie taşıyan otomatik tarayıcı istekleri
-- SameSite bypass senaryoları (redirect chains, top-level navigation)
-- Token replay (zaman penceresi içinde sınırlı)
-- Token exfiltration sonrası bağlam dışı kullanım
+- Cross-site authenticated requests (classic CSRF)
+- Automatic browser requests carrying cookies
+- SameSite bypass scenarios (redirect chains, top-level navigation)
+- Token replay (limited within time window)
+- Token exfiltration followed by out-of-context usage
 
-Korunmayan tehdit:
+### Unprotected Threats
 
-- XSS (CSRF savunması XSS’i engellemez; XSS varsa CSRF kırılabilir)
-- MitM (TLS dışı trafik)
+- XSS (CSRF defense does not prevent XSS; if XSS exists, CSRF can be broken)
+- Man-in-the-Middle (non-TLS traffic)
 - Compromised client environment
-- Clickjacking (ayrı savunma gerekir)
+- Clickjacking (requires separate defense)
 - Same-origin logic bugs
 
-Bu sınırlar dokümantasyonda açık şekilde belirtilmelidir.
+These boundaries must be clearly stated in documentation.
 
 ---
 
-## 3. Mimari Tasarım
+## 3. Architectural Design
 
-Çekirdek doğrulama mantığı saf fonksiyonlardan oluşur ve runtime bağımsızdır. Adaptör katmanı framework’e göre HTTP soyutlamasını çevirir.
+The core validation logic consists of pure functions and is runtime-agnostic. The adapter layer translates HTTP abstractions according to the framework.
 
-Katmanlar:
+### Layers
 
 1. **Core (runtime-agnostic)**
-   Token encode/decode, HMAC doğrulama, zaman penceresi, bağlam doğrulama.
+   - Token encode/decode, HMAC validation, time window, context validation
 
 2. **Policy Engine**
-   Fetch Metadata, Origin/Referer, Method, Content-Type, Same-site ilişkisi.
+   - Fetch Metadata, Origin/Referer, Method, Content-Type, Same-site relationship
 
 3. **Adapters**
-   Express, Fastify, Hono, Oak, Elysia, native fetch.
+   - Express, Fastify, Hono, Oak, Elysia, native fetch
 
 4. **Crypto Layer**
-   WebCrypto (Node 18+, Bun, Deno). Native bağımlılık yok.
+   - WebCrypto (Node 18+, Bun, Deno). No native dependencies.
 
-Stateless tasarım sayesinde oturum deposu, Redis veya sticky session gerekmez.
+The stateless design eliminates the need for session stores, Redis, or sticky sessions.
 
 ---
 
-## 4. Token Modeli
+## 4. Token Model
 
-### 4.1 Token Yapısı
+### 4.1 Token Structure
 
-Token yapısı:
+Token structure:
 
 ```
 base64url(
@@ -82,214 +84,214 @@ base64url(
 )
 ```
 
-Alanlar:
+Fields:
 
-- **kid**: Key ID (8-bit, key rotation için)
-- **nonce**: 128-bit rastgele değer (crypto.getRandomValues)
+- **kid**: Key ID (8-bit, for key rotation)
+- **nonce**: 128-bit random value (crypto.getRandomValues)
 - **ts**: unix timestamp (int64, big-endian)
-- **ctx**: bağlayıcı veri (opsiyonel, SHA-256 hash)
+- **ctx**: binding data (optional, SHA-256 hash)
 - **mac**: HMAC-SHA256(derived_key, kid|nonce|ts|ctx)
 
-### 4.2 Kriptografik Parametreler (Sabit)
+### 4.2 Cryptographic Parameters (Fixed)
 
 **Entropy:**
 
-- Nonce: 128-bit (16 byte) — crypto.getRandomValues
+- Nonce: 128-bit (16 bytes) — crypto.getRandomValues
 - Minimum entropy: 2^128 (collision resistance)
 
 **MAC:**
 
 - HMAC-SHA256 (256-bit output)
-- **MAC truncation yapılmaz** (timing oracle riski)
-- Full 256-bit MAC kullanılır
+- **No MAC truncation** (timing oracle risk)
+- Full 256-bit MAC used
 
 **Encoding:**
 
 - base64url (RFC 4648)
-- **Padding yok** (canonical form)
-- Max token length: ~120 karakter
+- **No padding** (canonical form)
+- Max token length: ~120 characters
 
 **Key Derivation:**
 
 - HKDF-SHA256 (RFC 5869)
 - Master secret → versioned signing keys
-- Key rotation için kid (Key ID) kullanılır
+- Key ID (kid) used for key rotation
 
-### 4.3 Token Özellikleri
+### 4.3 Token Properties
 
-- Sunucu tarafında saklama yok (stateless)
-- Token çalınsa bile bağlam dışı kullanılamaz (context binding)
-- TTL ile replay penceresi sınırlanır (**tasarım sınırı, zafiyet değil**)
-- Constant-time doğrulama (timing attack koruması)
-- Deterministic failure path (error oracle koruması)
+- No server-side storage (stateless)
+- Even if token is stolen, cannot be used out of context (context binding)
+- TTL limits replay window (**design boundary, not vulnerability**)
+- Constant-time validation (timing attack protection)
+- Deterministic failure path (error oracle protection)
 
-### 4.4 Token Replay Modeli
+### 4.4 Token Replay Model
 
-**Önemli:** Token replay, stateless + TTL modelinde **kaçınılmaz tasarım sınırıdır**, zafiyet değildir.
+**Important:** Token replay is an **unavoidable design boundary** in stateless + TTL models, not a vulnerability.
 
-Replay koruması:
+Replay protection:
 
-- TTL penceresi (önerilen: 10-30 dakika)
+- TTL window (recommended: 10-30 minutes)
 - Context binding (session/user/origin)
-- Origin validation (cross-site replay engellenir)
+- Origin validation (prevents cross-site replay)
 
-Replay saldırısı için gerekli:
+Requirements for replay attack:
 
 - Valid token (exfiltration)
 - Valid cookie (session)
 - Valid origin (same-site)
 
-Bu noktada saldırı CSRF değil, **token exfiltration** (XSS) olur.
+At this point, the attack is not CSRF but **token exfiltration** (XSS).
 
 ---
 
-## 5. Doğrulama Katmanları
+## 5. Validation Layers
 
-Token tek başına yeterli kabul edilmez. Çok katmanlı politika uygulanır.
+Token alone is not considered sufficient. Multi-layered policy is enforced.
 
 ### 5.1 Fetch Metadata
 
 `Sec-Fetch-Site`:
 
-- same-origin / same-site → izin
-- cross-site → reddet (state-changing request)
+- same-origin / same-site → allow
+- cross-site → reject (state-changing request)
 
-Bu, modern tarayıcılarda düşük maliyetli ve güçlü filtredir.
+This is a low-cost and powerful filter in modern browsers.
 
-**Destek:**
+**Support:**
 
 - Chrome 76+
 - Firefox 90+
 - Edge 79+
 - Safari 16.4+ (partial)
 
-**Legacy Browser Davranışı:**
+**Legacy Browser Behavior:**
 
-**Risk Değerlendirmesi:** Modern web'de Fetch Metadata olmayan browser payı **düşük ama non-zero**.
+**Risk Assessment:** Browser share without Fetch Metadata in modern web is **low but non-zero**.
 
-**Fallback Stratejisi:**
+**Fallback Strategy:**
 
-#### Degraded Mode (Önerilen)
+#### Degraded Mode (Recommended)
 
-- Fetch Metadata yok → degrade to Origin + Token validation
-- Origin/Referer + Token zorunlu
+- No Fetch Metadata → degrade to Origin + Token validation
+- Origin/Referer + Token mandatory
 - Log warning (legacy browser detected)
 
 #### Strict Mode (High-Security)
 
-- Fetch Metadata yok → reject
-- Modern browser zorunlu
-- User-Agent whitelist opsiyonel
+- No Fetch Metadata → reject
+- Modern browser mandatory
+- User-Agent whitelist optional
 
-**Konfigürasyon:**
+**Configuration:**
 
 ```javascript
 {
   legacyBrowserMode: 'degraded' | 'strict',
-  requireFetchMetadata: false // degraded mode için
+  requireFetchMetadata: false // for degraded mode
 }
 ```
 
-Referans: W3C Fetch Metadata Request Headers
+Reference: W3C Fetch Metadata Request Headers
 
 ---
 
 ### 5.2 Origin / Referer
 
-- Origin header varsa strict match
-- Yoksa Referer fallback
-- Cross-origin mismatch → reddet
+- If Origin header exists, strict match
+- Otherwise, Referer fallback
+- Cross-origin mismatch → reject
 
-Referans: RFC 6454 (Origin)
+Reference: RFC 6454 (Origin)
 
 ---
 
-### 5.3 SameSite Politika
+### 5.3 SameSite Policy
 
-Varsayılan:
+Default:
 
 - `SameSite=Lax`
-- `Secure` zorunlu
-- `Strict` opsiyonel
+- `Secure` mandatory
+- `Strict` optional
 
-CSRF paketi cookie üretmez; ancak doğrulama politikası expose edilir.
+The CSRF package does not generate cookies; however, validation policy is exposed.
 
-Referans: RFC 6265bis
+Reference: RFC 6265bis
 
 ---
 
-### 5.4 HTTP Method Koruması
+### 5.4 HTTP Method Protection
 
-Korunan:
+Protected:
 
 - POST
 - PUT
 - PATCH
 - DELETE
 
-GET default olarak korunmaz.
+GET is not protected by default.
 
 ---
 
-### 5.5 Content-Type Kısıtı
+### 5.5 Content-Type Restriction
 
-İzin verilen:
+Allowed:
 
 - application/json
 - application/x-www-form-urlencoded
 - multipart/form-data
 
-Diğerleri reddedilebilir veya opsiyonel bırakılır.
+Others may be rejected or left optional.
 
 ---
 
-### 5.6 Token Doğrulama
+### 5.6 Token Validation
 
-Adımlar:
+Steps:
 
 1. Token parse
-2. Zaman penceresi kontrolü
-3. HMAC doğrulama
-4. Bağlam doğrulama (opsiyonel)
+2. Time window check
+3. HMAC validation
+4. Context validation (optional)
 
-### 5.7 Side-Channel Koruması
+### 5.7 Side-Channel Protection
 
-**Kritik:** Timing attack tek side-channel değildir.
+**Critical:** Timing attack is not the only side-channel.
 
 #### Timing Attack
 
-- **Constant-time HMAC doğrulama** zorunlu
-- Crypto API native constant-time kullanmalı
-- String comparison yerine crypto.timingSafeEqual
+- **Constant-time HMAC validation** mandatory
+- Crypto API must use native constant-time
+- Use crypto.timingSafeEqual instead of string comparison
 
 #### Early Reject Leakage
 
-- Token parse başarısız → hemen reject **YAPILMAZ**
-- TTL expired → hemen reject **YAPILMAZ**
-- Tüm doğrulama adımları tamamlanır
-- **Single failure path** (her hata aynı response time)
+- Token parse failed → do NOT reject immediately
+- TTL expired → do NOT reject immediately
+- All validation steps must complete
+- **Single failure path** (every error same response time)
 
 #### Error Type Oracle
 
-- "Invalid token" vs "Expired token" vs "Invalid signature" → **AYR EDILMAZ**
-- Tek error message: "CSRF validation failed"
-- Error detail loglanır ama client'a gönderilmez
+- "Invalid token" vs "Expired token" vs "Invalid signature" → **NOT DIFFERENTIATED**
+- Single error message: "CSRF validation failed"
+- Error details logged but not sent to client
 
 #### Token Length Oracle
 
 - Token length validation → constant-time
-- Short token → padding ile normalize edilir
-- Length leak → token format inference riski
+- Short token → normalized with padding
+- Length leak → token format inference risk
 
 #### Branch Prediction Leak
 
 - Conditional branch → timing variation
 - Crypto operations → branch-free implementation
-- Modern CPU speculative execution riski (nadir ama var)
+- Modern CPU speculative execution risk (rare but exists)
 
 ### 5.8 Deterministic Failure Model
 
-**Single Failure Path Prensibi:**
+**Single Failure Path Principle:**
 
 ```
 validate(token):
@@ -318,19 +320,19 @@ validate(token):
     return FAILURE  # Same response time
 ```
 
-**Avantajlar:**
+**Advantages:**
 
-- Timing leak yok
-- Error oracle yok
-- Branch prediction leak minimal
+- No timing leak
+- No error oracle
+- Minimal branch prediction leak
 
 ---
 
-## 6. Bağlam Bağlama (Context Binding)
+## 6. Context Binding
 
-### 6.1 Temel Kavram
+### 6.1 Basic Concept
 
-Opsiyonel güvenlik artırımı:
+Optional security enhancement:
 
 - session id hash
 - user id hash
@@ -338,53 +340,53 @@ Opsiyonel güvenlik artırımı:
 - deployment salt
 - per-form nonce
 
-Yanlış konfigürasyon false-negative üretebileceği için default kapalıdır.
+Default is disabled because misconfiguration can produce false negatives.
 
-### 6.2 Risk Tier Modeli
+### 6.2 Risk Tier Model
 
-**Kritik:** Context binding her endpoint için aynı katılıkta uygulanmamalıdır.
+**Critical:** Context binding should not be applied with the same strictness for every endpoint.
 
 #### Low Assurance (Relaxed Binding)
 
-- **Endpoint türü:** Read-only, non-destructive
-- **Binding:** Opsiyonel veya soft-fail
-- **Örnek:** Profil görüntüleme, liste sorgulama
+- **Endpoint type:** Read-only, non-destructive
+- **Binding:** Optional or soft-fail
+- **Example:** Profile viewing, list queries
 
 #### Medium Assurance (Standard Binding)
 
-- **Endpoint türü:** State-changing ama reversible
+- **Endpoint type:** State-changing but reversible
 - **Binding:** Session ID hash (soft-fail with grace period)
-- **Örnek:** Profil güncelleme, ayar değişikliği
+- **Example:** Profile update, settings change
 
 #### High Assurance (Strict Binding)
 
-- **Endpoint türü:** Financial, destructive, irreversible
+- **Endpoint type:** Financial, destructive, irreversible
 - **Binding:** Session + User + Origin hash (fail-closed)
-- **Örnek:** Para transferi, hesap silme, yetki değişikliği
+- **Example:** Money transfer, account deletion, permission change
 
 ### 6.3 Soft-Fail vs Fail-Closed
 
 **Soft-Fail (Medium Assurance):**
 
 - Context mismatch → log warning + allow
-- Grace period: 5 dakika (session rotation toleransı)
-- Telemetry ile false-negative oranı ölçülür
+- Grace period: 5 minutes (session rotation tolerance)
+- Telemetry measures false-negative rate
 
 **Fail-Closed (High Assurance):**
 
 - Context mismatch → reject + audit log
-- Grace period yok
+- No grace period
 - Security > usability
 
 ### 6.4 False-Negative Mitigation
 
-- Session rotation sonrası 5 dakika grace period
+- 5-minute grace period after session rotation
 - Multi-device login detection (user agent fingerprint)
-- Telemetry: context mismatch rate < %1 hedefi
+- Telemetry: context mismatch rate < 1% target
 
 ---
 
-## 7. Key Management ve Rotation
+## 7. Key Management and Rotation
 
 ### 7.1 Key Derivation
 
@@ -398,79 +400,79 @@ HKDF-SHA256(
 )
 ```
 
-**Avantajlar:**
+**Advantages:**
 
-- Versioned keys (kid ile)
-- Master secret leak → sadece rotation gerekir
-- Raw secret yerine derived key kullanımı
+- Versioned keys (via kid)
+- Master secret leak → only rotation required
+- Derived key usage instead of raw secret
 
-### 7.2 Key Rotation Stratejisi
+### 7.2 Key Rotation Strategy
 
-**Keyring Modeli:**
+**Keyring Model:**
 
 - Active key (kid = current)
 - Previous keys (kid = current-1, current-2, ...)
 - Max keyring size: 3 (active + 2 previous)
 
-**Rotation Frekansı:**
+**Rotation Frequency:**
 
-- **Önerilen:** 7 gün (haftalık)
-- **Minimum:** 1 gün (günlük, high-security)
-- **Maximum:** 30 gün (aylık, low-risk)
+- **Recommended:** 7 days (weekly)
+- **Minimum:** 1 day (daily, high-security)
+- **Maximum:** 30 days (monthly, low-risk)
 
-**Rotation Prosedürü:**
+**Rotation Procedure:**
 
-1. Yeni key derive edilir (kid++)
-2. Eski active key → previous keys
-3. Token generation yeni key ile
-4. Token validation tüm keyring ile
-5. Oldest key drop edilir (keyring size limit)
+1. New key derived (kid++)
+2. Old active key → previous keys
+3. Token generation with new key
+4. Token validation with entire keyring
+5. Oldest key dropped (keyring size limit)
 
-**Kesintisiz Rotation:**
+**Zero-Downtime Rotation:**
 
-- TTL + keyring overlap sayesinde zero-downtime
-- Örn: TTL=30dk, rotation=7gün → 30dk overlap yeterli
+- TTL + keyring overlap ensures zero-downtime
+- Example: TTL=30min, rotation=7days → 30min overlap sufficient
 
-### 7.3 Key Compromise Senaryoları
+### 7.3 Key Compromise Scenarios
 
-**Senaryo 1: Signing Key Leak (kid-specific)**
+**Scenario 1: Signing Key Leak (kid-specific)**
 
-- Etki: Saldırgan o kid ile valid token üretebilir
-- Mitigation: Emergency rotation (kid invalidate)
-- Blast radius: Sadece o kid'li tokenlar
+- Impact: Attacker can generate valid tokens with that kid
+- Mitigation: Emergency rotation (invalidate kid)
+- Blast radius: Only tokens with that kid
 
-**Senaryo 2: Master Secret Leak**
+**Scenario 2: Master Secret Leak**
 
-- Etki: Tüm derived keyler compromise
-- Mitigation: Master secret rotation + tüm kid'ler invalidate
-- Blast radius: Tüm aktif tokenlar geçersiz
+- Impact: All derived keys compromised
+- Mitigation: Master secret rotation + invalidate all kids
+- Blast radius: All active tokens invalid
 
-**Ayrım Kritik:** Key rotation (normal) vs key compromise (emergency)
+**Critical Distinction:** Key rotation (normal) vs key compromise (emergency)
 
 ---
 
-## 8. Runtime Uyumluluğu ve Client Çeşitliliği
+## 8. Runtime Compatibility and Client Diversity
 
-### 8.1 Runtime Desteği
+### 8.1 Runtime Support
 
-Tek kripto API: **WebCrypto**
+Single crypto API: **WebCrypto**
 
-Destek:
+Support:
 
 - Node ≥18
 - Bun
 - Deno
 - Edge runtimes (Cloudflare Workers, Vercel Edge)
 
-Stream tüketmeyen doğrulama; serverless uyumlu.
+Non-stream-consuming validation; serverless compatible.
 
 ### 8.2 Browser vs API Mode
 
-**Kritik:** Dokümantasyon tamamen browser varsayımıyla yazılmış. Gerçek dünyada non-browser client'lar var.
+**Critical:** Documentation was written entirely with browser assumptions. In reality, non-browser clients exist.
 
 #### Browser Mode (Default)
 
-- **Client:** Modern tarayıcı
+- **Client:** Modern browser
 - **Validation:** Full multi-layer (Fetch Metadata + Origin + Token)
 - **Fetch Metadata:** Enforce
 - **Origin/Referer:** Enforce
@@ -478,70 +480,70 @@ Stream tüketmeyen doğrulama; serverless uyumlu.
 #### API Mode (Non-Browser)
 
 - **Client:** Mobile app, CLI, internal service, curl, bot
-- **Validation:** Token-only (Fetch Metadata yok)
-- **Fetch Metadata:** Skip (header yok)
-- **Origin/Referer:** Optional (güvenilir client ise skip)
+- **Validation:** Token-only (no Fetch Metadata)
+- **Fetch Metadata:** Skip (header absent)
+- **Origin/Referer:** Optional (skip if trusted client)
 
 #### Mode Detection
 
-**Otomatik:**
+**Automatic:**
 
-- `Sec-Fetch-Site` header var → Browser Mode
-- `Sec-Fetch-Site` header yok → API Mode
+- `Sec-Fetch-Site` header present → Browser Mode
+- `Sec-Fetch-Site` header absent → API Mode
 
-**Manuel:**
+**Manual:**
 
 - `X-Client-Type: api` header → Force API Mode
 - Configuration: `allowApiMode: true/false`
 
-#### API Mode Güvenlik
+#### API Mode Security
 
-API Mode'da Fetch Metadata yok ama:
+In API Mode, no Fetch Metadata but:
 
-- Token doğrulama zorunlu
-- Context binding önerilir (API key hash)
-- Rate limiting zorunlu
-- IP whitelist opsiyonel
+- Token validation mandatory
+- Context binding recommended (API key hash)
+- Rate limiting mandatory
+- IP whitelist optional
 
 ### 8.3 Token Transport Canonicalization
 
-**Kritik:** Token taşıma kanalı belirsizliği bug üretir.
+**Critical:** Token transport channel ambiguity produces bugs.
 
 #### Transport Precedence (Strict Order)
 
-1. **Custom Header** (önerilen): `X-CSRF-Token`
+1. **Custom Header** (recommended): `X-CSRF-Token`
 2. **Request Body** (JSON): `{ "csrf_token": "..." }`
 3. **Request Body** (form): `csrf_token=...`
-4. **Query Parameter** (deprecated, güvensiz): `?csrf_token=...`
+4. **Query Parameter** (deprecated, insecure): `?csrf_token=...`
 
-**Precedence Kuralı:**
+**Precedence Rule:**
 
-- İlk bulunan geçerli token kullanılır
-- Multiple token → first match wins
+- First valid token found is used
+- Multiple tokens → first match wins
 - Duplicate header → first value
 
 #### Ambiguity Handling
 
 **Multiple Token Conflict:**
 
-- Header + Body farklı token → header öncelikli
-- Body JSON + Form → JSON öncelikli
+- Header + Body different tokens → header takes precedence
+- Body JSON + Form → JSON takes precedence
 - Log warning (suspicious behavior)
 
 **Duplicate Header:**
 
-- İlk değer kullanılır
+- First value used
 - Audit log (potential attack)
 
 **Content-Type Mismatch:**
 
-- `Content-Type: application/json` ama form data → reject
-- `Content-Type: application/x-www-form-urlencoded` ama JSON → reject
+- `Content-Type: application/json` but form data → reject
+- `Content-Type: application/x-www-form-urlencoded` but JSON → reject
 
 **Missing Token:**
 
 - State-changing method (POST/PUT/PATCH/DELETE) → reject
-- GET → allow (ama log if suspicious)
+- GET → allow (but log if suspicious)
 
 ### 8.4 Fetch Metadata Edge-Cases
 
@@ -550,105 +552,105 @@ API Mode'da Fetch Metadata yok ama:
 - `Sec-Fetch-Site: same-site`
 - `Origin: https://api.example.com`
 - `Referer: https://app.example.com`
-- **Karar:** Allow (same-site) ama log (cross-origin)
+- **Decision:** Allow (same-site) but log (cross-origin)
 
 **Service Worker Initiated Request:**
 
-- Service worker → `Sec-Fetch-Site` değişebilir
-- **Karar:** Fallback to Origin/Referer validation
+- Service worker → `Sec-Fetch-Site` may vary
+- **Decision:** Fallback to Origin/Referer validation
 
 **Browser Extension Initiated Request:**
 
-- Extension → `Sec-Fetch-Site: none` veya eksik
-- **Karar:** Reject (untrusted origin)
+- Extension → `Sec-Fetch-Site: none` or missing
+- **Decision:** Reject (untrusted origin)
 
 **Preflight-less Credentialed Request:**
 
-- Simple request (GET/POST form) → preflight yok
-- **Karar:** Fetch Metadata + Token zorunlu
+- Simple request (GET/POST form) → no preflight
+- **Decision:** Fetch Metadata + Token mandatory
 
-### 8.5 Non-Browser Client Örnekleri
+### 8.5 Non-Browser Client Examples
 
 **Mobile App:**
 
 - Native HTTP client (URLSession, OkHttp)
-- Fetch Metadata yok
+- No Fetch Metadata
 - API Mode + Token + API key hash
 
 **CLI Tool:**
 
 - curl, wget
-- Fetch Metadata yok
+- No Fetch Metadata
 - API Mode + Token + user authentication
 
 **Internal Service:**
 
 - Server-to-server
-- Fetch Metadata yok
+- No Fetch Metadata
 - API Mode + Token + service authentication
 
 **Bot/Scraper:**
 
-- Headless browser veya HTTP client
-- Fetch Metadata var/yok (depends)
-- Browser Mode (headless) veya API Mode (HTTP client)
+- Headless browser or HTTP client
+- Fetch Metadata present/absent (depends)
+- Browser Mode (headless) or API Mode (HTTP client)
 
 ---
 
-## 9. Güvenlik Notları
+## 9. Security Notes
 
-1. XSS varsa CSRF kırılır.
-2. Token gizli değildir; yalnızca bütünlük doğrular.
-3. SameSite tek başına yeterli değildir.
-4. Origin kontrolü devre dışı bırakılmamalıdır.
-5. Fetch Metadata bypass edilemez kabul edilmemelidir (legacy browser).
-6. Clock skew toleransı uygulanmalıdır.
-7. Token TTL kısa tutulmalıdır (10–30 dk).
-8. Constant-time MAC doğrulaması zorunludur.
-9. Token loglanmamalıdır.
-10. Token URL parametresinde taşınmamalıdır.
+1. If XSS exists, CSRF is broken.
+2. Token is not secret; it only validates integrity.
+3. SameSite alone is not sufficient.
+4. Origin check must not be disabled.
+5. Fetch Metadata bypass should not be assumed impossible (legacy browser).
+6. Clock skew tolerance must be applied.
+7. Token TTL should be kept short (10-30 min).
+8. Constant-time MAC validation is mandatory.
+9. Token must not be logged.
+10. Token must not be transported in URL parameters.
 
 ---
 
-## 10. Test Stratejisi
+## 10. Testing Strategy
 
-- Cross-origin POST simülasyonu
-- SameSite bypass edge-case
+- Cross-origin POST simulation
+- SameSite bypass edge-cases
 - Key rotation
 - Clock skew
 - Malformed token fuzzing
-- Replay testi
-- Constant-time side-channel ölçümü
-- High concurrency stateless doğrulama
+- Replay testing
+- Constant-time side-channel measurement
+- High concurrency stateless validation
 
 ---
 
-## 11. Performans Hedefi
+## 11. Performance Target
 
-- O(1) doğrulama
+- O(1) validation
 - No I/O
 - No storage
-- Token doğrulama < 50µs
-- Memory footprint minimal
+- Token validation < 50µs
+- Minimal memory footprint
 
 ---
 
-## 12. Geliştirme Planı
+## 12. Development Plan
 
-Faz 1 — Core
+Phase 1 — Core
 
 - Token encode/decode
-- HMAC doğrulama
+- HMAC validation
 - TTL
 - Context binding
 
-Faz 2 — Policy Engine
+Phase 2 — Policy Engine
 
 - Fetch Metadata
 - Origin/Referer
 - Method / Content-Type
 
-Faz 3 — Adapters
+Phase 3 — Adapters
 
 - Express
 - Fastify
@@ -657,14 +659,14 @@ Faz 3 — Adapters
 - Elysia
 - Native fetch
 
-Faz 4 — Security Hardening
+Phase 4 — Security Hardening
 
 - Constant-time
 - Fuzzing
 - Key rotation
-- Side-channel test
+- Side-channel testing
 
-Faz 5 — Docs & Threat Model
+Phase 5 — Docs & Threat Model
 
 - Misuse scenarios
 - Security boundaries
@@ -672,9 +674,9 @@ Faz 5 — Docs & Threat Model
 
 ---
 
-## 13. Araştırma Referansları / Citation
+## 13. Research References / Citations
 
-CSRF ve modern savunma:
+CSRF and modern defense:
 
 - Barth, Jackson, Mitchell — Robust Defenses for CSRF (Stanford)
 - OWASP CSRF Prevention Cheat Sheet
@@ -685,7 +687,7 @@ CSRF ve modern savunma:
 - Chrome Security — Defense in Depth for CSRF
 - Mozilla Web Security Guidelines
 
-Token & kriptografi:
+Token & cryptography:
 
 - NIST SP 800-107 — HMAC Security
 - RFC 2104 — HMAC
@@ -699,73 +701,72 @@ Side-channel & constant-time:
 
 Stateless security models:
 
-- JWT BCP — RFC 8725 (token misuse ve binding konuları)
-- Macaroons — Context-bound token yaklaşımı
+- JWT BCP — RFC 8725 (token misuse and binding issues)
+- Macaroons — Context-bound token approach
 
 ---
 
-## 14. Geçerlilik ve Güvenlik Argümanı
+## 14. Validity and Security Argument
 
-Bu model, klasik synchronizer token yaklaşımına göre:
+This model, compared to classic synchronizer token approach:
 
-- Storage gerektirmez
-- Horizontal scale uyumlu
-- Edge/serverless uyumlu
-- Modern tarayıcı sinyallerini kullanır
-- Token çalınsa bile bağlam dışı kullanımı sınırlar
-- Replay yüzeyini zaman penceresi ile daraltır
-- Defense-in-depth uygular
+- Requires no storage
+- Horizontally scalable
+- Edge/serverless compatible
+- Uses modern browser signals
+- Limits out-of-context usage even if token is stolen
+- Narrows replay surface with time window
+- Implements defense-in-depth
 
-Güvenlik, tek mekanizmaya değil katmanların birleşimine dayanır.
-
----
-
-## 15. Açık Araştırma Alanları
-
-- Fetch Metadata olmayan legacy browser davranışı
-- Token binding vs session binding doğruluk oranı
-- SameSite bypass varyasyonları
-- HTTP/3 ve service worker etkileri
-- Browser privacy partitioning etkisi
-- WebView davranışları
-- Cross-origin iframe + credential mode edge-case
-
-Bu alanlar için gerçek dünya testleri önerilir.
+Security relies on the combination of layers, not a single mechanism.
 
 ---
 
-Bu doküman, modern web güvenliği bağlamında üretilecek stateless, kriptografik ve çok katmanlı bir CSRF savunma kütüphanesi için teknik temel ve referans çerçevesi sağlar. Geliştirme süreci sırasında tehdit modeli ve politika varsayımları yeniden doğrulanmalıdır.
+## 15. Open Research Areas
+
+- Legacy browser behavior without Fetch Metadata
+- Token binding vs session binding accuracy rate
+- SameSite bypass variations
+- HTTP/3 and service worker effects
+- Browser privacy partitioning impact
+- WebView behaviors
+- Cross-origin iframe + credential mode edge-cases
+
+Real-world testing is recommended for these areas.
 
 ---
 
-# Part II: Token Lifecycle
-# Token Lifecycle Specification
-
-**Versiyon:** 1.0
-**Durum:** Formal Specification
-**Hedef:** SPA + Multi-Tab + Rotation
+This document provides the technical foundation and reference framework for a modern, stateless, cryptographic, and multi-layered CSRF defense library in the context of web security. During development, the threat model and policy assumptions should be revalidated.
 
 ---
 
-## 1. Genel Bakış
+# Part II: Token Lifecycle Specification
 
-Token lifecycle, CSRF korumasının **en kırılgan noktasıdır**. Bu spesifikasyon, token üretim, yenileme, senkronizasyon ve invalidation semantiğini tanımlar.
-
-### Tasarım Prensipleri
-
-1. **Per-Session Token** (per-request değil)
-2. **Lazy Rotation** (proactive değil)
-3. **Hard Expiry** (sliding TTL değil)
-4. **Multi-Tab Sync** (BroadcastChannel / storage)
-5. **Silent Refresh** (user interaction gerektirmez)
+**Version:** 1.0
+**Status:** Formal Specification
+**Target:** SPA + Multi-Tab + Rotation
 
 ---
 
-## 2. Generation Modeli
+## 1. Overview
+
+The token lifecycle is the **most fragile component** of CSRF protection. This specification defines the semantics for token generation, refresh, synchronization, and invalidation.
+
+### Design Principles
+
+1. **Per-Session Token** (not per-request)
+2. **Lazy Rotation** (not proactive)
+3. **Hard Expiry** (not sliding TTL)
+4. **Multi-Tab Sync** (via BroadcastChannel / storage events)
+5. **Silent Refresh** (requires no user interaction)
+
+---
+
+## 2. Generation Model
 
 ### 2.1 Token Generation Timing
 
-**Per-Session Model (Önerilen):**
+**Per-Session Model (Recommended):**
 
 ```
 Session Start → Generate Token
@@ -773,52 +774,52 @@ Token Expiry → Silent Refresh
 Session End → Token Discard
 ```
 
-**Alternatif (Per-Request):**
+**Alternative (Per-Request):**
 
-- Her request için yeni token → yüksek overhead
-- **Reddedilme Nedeni:** Stateless modelde gereksiz complexity
+- New token for every request → high overhead
+- **Reason for Rejection:** Unnecessary complexity for a stateless model.
 
 ### 2.2 Generation Trigger
 
 **Initial Generation:**
 
-- Session oluşturulduğunda (login, anonymous session)
-- Token yok veya expired
+- Upon session creation (login, anonymous session)
+- When token is missing or expired
 
 **Refresh Generation:**
 
-- TTL son %25'inde (örn: 20dk TTL → son 5dk)
+- During the final 25% of TTL (e.g., last 5 minutes of a 20-minute TTL)
 - Client-initiated (background fetch)
-- Server-initiated (response header: `X-CSRF-Token-Refresh: true`)
+- Server-initiated (via response header: `X-CSRF-Token-Refresh: true`)
 
 ### 2.3 Generation Endpoint
 
-**Dedicated Endpoint (Önerilen):**
+**Dedicated Endpoint (Recommended):**
 
 ```
 GET /api/csrf/token
 Response: { "token": "...", "expiresAt": 1234567890 }
 ```
 
-**Inline Generation (Alternatif):**
+**Inline Generation (Alternative):**
 
-- Her response'da `X-CSRF-Token` header
-- **Trade-off:** Overhead vs convenience
+- `X-CSRF-Token` header in every response
+- **Trade-off:** Overhead vs convenience.
 
 ---
 
-## 3. Refresh Stratejisi
+## 3. Refresh Strategy
 
 ### 3.1 Refresh Window
 
-**Parametreler:**
+**Parameters:**
 
 ```javascript
 {
-  tokenTTL: 20 * 60 * 1000,        // 20 dakika
-  refreshWindow: 0.25,              // Son %25 (5 dakika)
-  refreshInterval: 60 * 1000,       // 1 dakika check
-  graceWindow: 60 * 1000            // 60 saniye overlap
+  tokenTTL: 20 * 60 * 1000,        // 20 minutes
+  refreshWindow: 0.25,              // Final 25% (5 minutes)
+  refreshInterval: 60 * 1000,       // 1-minute check
+  graceWindow: 60 * 1000            // 60-second overlap
 }
 ```
 
@@ -831,7 +832,7 @@ function shouldRefresh(token) {
   const ttl = expiresAt - token.issuedAt
   const remaining = expiresAt - now
 
-  // Refresh window = son %25
+  // Refresh window = final 25%
   return remaining < ttl * 0.25
 }
 ```
@@ -841,7 +842,7 @@ function shouldRefresh(token) {
 **Client-Side Implementation:**
 
 ```javascript
-// Background refresh (user interaction gerektirmez)
+// Background refresh (no user interaction required)
 async function silentRefresh() {
   try {
     const response = await fetch('/api/csrf/token', {
@@ -849,14 +850,14 @@ async function silentRefresh() {
     })
     const { token, expiresAt } = await response.json()
 
-    // Storage'a yaz (multi-tab sync için)
+    // Persist to storage (for multi-tab sync)
     localStorage.setItem('csrf_token', token)
     localStorage.setItem('csrf_expires_at', expiresAt)
 
-    // BroadcastChannel ile diğer tab'lara notify
+    // Notify other tabs via BroadcastChannel
     broadcastChannel.postMessage({ type: 'token_refresh', token, expiresAt })
   } catch (error) {
-    // Fallback: next request'te 403 → force refresh
+    // Fallback: 403 on next request → force refresh
   }
 }
 
@@ -866,14 +867,14 @@ setInterval(() => {
   if (shouldRefresh(token)) {
     silentRefresh()
   }
-}, 60 * 1000) // Her 1 dakikada check
+}, 60 * 1000) // Check every 1 minute
 ```
 
 ### 3.3 Grace Window
 
-**Sorun:** Refresh sırasında eski token hala kullanılıyor olabilir (in-flight request).
+**Problem:** An old token might still be in use during a refresh (in-flight request).
 
-**Çözüm:** 60 saniye grace window
+**Solution:** 60-second grace window.
 
 ```javascript
 // Server-side validation
@@ -885,7 +886,7 @@ function validateToken(token) {
   if (now > parsed.expiresAt) {
     // Grace window check
     if (now - parsed.expiresAt < GRACE_WINDOW) {
-      // Log warning ama allow
+      // Log warning but allow request
       logger.warn('Token in grace window', { kid: parsed.kid })
       return { valid: true, inGraceWindow: true }
     }
@@ -900,28 +901,28 @@ function validateToken(token) {
 
 ## 4. Multi-Tab Synchronization
 
-### 4.1 Sorun
+### 4.1 Problem
 
-Kullanıcı aynı anda birden fazla tab açabilir:
+A user may have multiple tabs open simultaneously:
 
-- Tab A token refresh yapar
-- Tab B eski token kullanır → 403
+- Tab A performs a token refresh.
+- Tab B continues using the old token → results in a 403 error.
 
-### 4.2 Çözüm: BroadcastChannel + Storage
+### 4.2 Solution: BroadcastChannel + Storage
 
 **BroadcastChannel (Modern):**
 
 ```javascript
 const channel = new BroadcastChannel('csrf_sync')
 
-// Token refresh sonrası notify
+// Notify after token refresh
 channel.postMessage({
   type: 'token_refresh',
   token,
   expiresAt,
 })
 
-// Diğer tab'larda listen
+// Listen in other tabs
 channel.onmessage = (event) => {
   if (event.data.type === 'token_refresh') {
     updateLocalToken(event.data.token, event.data.expiresAt)
@@ -932,7 +933,7 @@ channel.onmessage = (event) => {
 **Storage Event (Fallback):**
 
 ```javascript
-// localStorage değişikliğini dinle
+// Listen for localStorage changes
 window.addEventListener('storage', (event) => {
   if (event.key === 'csrf_token') {
     updateLocalToken(event.newValue)
@@ -940,14 +941,14 @@ window.addEventListener('storage', (event) => {
 })
 ```
 
-### 4.3 Race Condition Koruması
+### 4.3 Race Condition Protection
 
-**Sorun:** İki tab aynı anda refresh yaparsa?
+**Problem:** What if two tabs attempt to refresh simultaneously?
 
-**Çözüm:** Leader election
+**Solution:** Leader election via Web Locks.
 
 ```javascript
-// Sadece bir tab refresh yapar
+// Only one tab performs the refresh
 const isLeader = await navigator.locks.request(
   'csrf_refresh_lock',
   { ifAvailable: true },
@@ -965,44 +966,44 @@ const isLeader = await navigator.locks.request(
 
 ## 5. Token Invalidation
 
-### 5.1 Logout Semantiği
+### 5.1 Logout Semantics
 
-**Stateless Model → Instant Revoke Yok**
+**Stateless Model → No Instant Revocation**
 
-**Kabul Edilen Davranış:**
+**Accepted Behavior:**
 
 ```
-Logout → Cookie delete
-Token → TTL expire olana kadar geçerli (max 20dk)
-Risk: Düşük (CSRF için cookie gerekir)
+Logout → Delete cookie
+Token → Remains valid until TTL expiry (max 20min)
+Risk: Low (CSRF requires valid session cookie)
 ```
 
-**Kullanıcı Beklentisi Yönetimi:**
+**Managing Expectations:**
 
-- Dokümantasyonda açıkça belirt
-- Security FAQ'de yer ver
-- High-security ortamda short TTL (10dk)
+- Explicitly state this behavior in documentation.
+- Include in Security FAQ.
+- Use short TTL (e.g., 10min) for high-security environments.
 
-### 5.2 Opsiyonel: Kid Bump (Mini Rotation)
+### 5.2 Optional: Kid Bump (Mini-Rotation)
 
-**Logout sonrası immediate invalidation için:**
+**For immediate invalidation after logout:**
 
 ```javascript
 // Logout endpoint
 POST /api/auth/logout
 Response: {
   success: true,
-  csrfKidBump: true  // Client yeni token alsın
+  csrfKidBump: true  // Hint client to fetch new token
 }
 
-// Server-side
+// Server-side logic
 function logout(sessionId) {
-  // Session sil
+  // Clear session
   deleteSession(sessionId);
 
-  // Kid bump (opsiyonel)
+  // Trigger kid bump (optional)
   if (config.csrfKidBumpOnLogout) {
-    rotateKey(); // kid++
+    rotateKey(); // increment kid
   }
 }
 ```
@@ -1010,17 +1011,17 @@ function logout(sessionId) {
 **Trade-off:**
 
 - ✅ Immediate invalidation
-- ❌ Tüm kullanıcılar etkilenir (kid global)
+- ❌ Affects all users (kid is global)
 
-### 5.3 Opsiyonel: Revocation Filter
+### 5.3 Optional: Revocation Filter
 
-**High-security ortamlar için:**
+**For high-security environments:**
 
 ```javascript
 // Bloom filter / LRU cache
 const revokedTokens = new LRUCache({
   max: 10000,
-  ttl: 20 * 60 * 1000, // Token TTL ile aynı
+  ttl: 20 * 60 * 1000, // Matches token TTL
 })
 
 // Logout
@@ -1035,15 +1036,15 @@ function validateToken(token, sessionId) {
   if (revokedTokens.has(sessionHash)) {
     return { valid: false, reason: 'revoked' }
   }
-  // Normal validation
+  // Proceed with normal validation
 }
 ```
 
-**Özellikler:**
+**Properties:**
 
-- Memory bounded (TTL ile)
-- False positive tolere edilebilir
-- Stateless core korunur
+- Memory-bounded (via TTL)
+- Tolerates occasional false positives
+- Preserves stateless core
 
 ---
 
@@ -1054,10 +1055,10 @@ function validateToken(token, sessionId) {
 **Client-Side:**
 
 ```javascript
-// 403 response → token expired
+// 403 response indicates token expiry
 if (response.status === 403) {
   const newToken = await refreshToken()
-  // Retry request
+  // Retry the request
   return fetch(url, {
     ...options,
     headers: { 'X-CSRF-Token': newToken },
@@ -1068,7 +1069,7 @@ if (response.status === 403) {
 **Server-Side:**
 
 ```javascript
-// Expired token → 403 + refresh hint
+// Expired token → return 403 with a refresh hint
 return {
   status: 403,
   body: { error: 'CSRF validation failed' },
@@ -1081,9 +1082,9 @@ return {
 **Fallback:**
 
 ```javascript
-// Refresh başarısız → force logout
+// Failed refresh → force logout
 if (!(await refreshToken())) {
-  // Session invalid olabilir
+  // Session might be invalid
   forceLogout()
   redirectToLogin()
 }
@@ -1096,24 +1097,24 @@ if (!(await refreshToken())) {
 ### Server-Side
 
 - [ ] Token generation endpoint (`GET /api/csrf/token`)
-- [ ] TTL parametreleri (20dk default)
+- [ ] TTL parameters (20min default)
 - [ ] Grace window validation (60s)
-- [ ] Kid bump on logout (opsiyonel)
-- [ ] Revocation filter (opsiyonel)
+- [ ] Kid bump on logout (optional)
+- [ ] Revocation filter (optional)
 
 ### Client-Side
 
 - [ ] Silent refresh logic
-- [ ] Refresh window check (son %25)
+- [ ] Refresh window check (final 25%)
 - [ ] Multi-tab sync (BroadcastChannel + storage)
-- [ ] Leader election (race condition)
-- [ ] Error handling (403 → retry)
+- [ ] Leader election (to prevent race conditions)
+- [ ] Error handling (403 retry logic)
 - [ ] Logout token cleanup
 
 ### Testing
 
-- [ ] Token expiry edge-case
-- [ ] Multi-tab race condition
+- [ ] Token expiry edge-cases
+- [ ] Multi-tab race conditions
 - [ ] Grace window overlap
 - [ ] Refresh failure fallback
 - [ ] Logout invalidation (kid bump)
@@ -1125,28 +1126,28 @@ if (!(await refreshToken())) {
 ```javascript
 {
   // Token TTL
-  tokenTTL: 20 * 60 * 1000,           // 20 dakika (default)
+  tokenTTL: 20 * 60 * 1000,           // 20 minutes (default)
 
-  // Refresh window (son %25)
+  // Refresh window (final 25%)
   refreshWindow: 0.25,
 
   // Refresh check interval
-  refreshInterval: 60 * 1000,         // 1 dakika
+  refreshInterval: 60 * 1000,         // 1 minute
 
   // Grace window (overlap)
-  graceWindow: 60 * 1000,             // 60 saniye
+  graceWindow: 60 * 1000,             // 60 seconds
 
   // Logout behavior
-  kidBumpOnLogout: false,             // Kid rotation on logout
+  kidBumpOnLogout: false,             // Key rotation on logout
   useRevocationFilter: false,         // Bloom filter / LRU
 
-  // Multi-tab
-  useBroadcastChannel: true,          // Modern browser
+  // Multi-tab sync
+  useBroadcastChannel: true,          // Modern browsers
   useStorageEvent: true,              // Fallback
 
   // Endpoints
   tokenEndpoint: '/api/csrf/token',
-  refreshEndpoint: '/api/csrf/token'  // Same endpoint
+  refreshEndpoint: '/api/csrf/token'  // Usually the same
 }
 ```
 
@@ -1156,90 +1157,89 @@ if (!(await refreshToken())) {
 
 ### 9.1 Refresh Endpoint Security
 
-**Kritik:** Refresh endpoint CSRF'e karşı korunmalı mı?
+**Critical:** Should the refresh endpoint be protected against CSRF?
 
-**Cevap:** Hayır, çünkü:
+**Answer:** No, because:
 
-- GET request (state-changing değil)
-- Same-origin only
-- Cookie-based authentication
+- It is a GET request (non-state-changing).
+- Limits to same-origin only.
+- Relies on cookie-based authentication.
 
 ### 9.2 Token Storage
 
 **localStorage vs sessionStorage:**
 
-- **localStorage:** Multi-tab sync için gerekli
-- **sessionStorage:** Tab-isolated, sync yok
+- **localStorage:** Necessary for multi-tab synchronization.
+- **sessionStorage:** Tab-isolated, no synchronization.
 
 **XSS Risk:**
 
-- Token localStorage'da → XSS ile çalınabilir
-- **Mitigation:** CSP, XSS prevention (CSRF kütüphanesi dışında)
+- Storing in localStorage makes it accessible via XSS.
+- **Mitigation:** Implement robust CSP and XSS prevention (external to this library).
 
 ### 9.3 Clock Skew
 
-**Client-server clock farkı:**
+**Client-Server Time Synchronization:**
 
-- Client TTL check → server'dan farklı olabilir
-- **Mitigation:** Server timestamp kullan (client clock'a güvenme)
+- Client-side TTL checks may differ from server-side logic.
+- **Mitigation:** Use server timestamps (do not rely solely on client clock).
 
 ```javascript
-// Server timestamp kullan
+// Utilize server timestamp
 const serverTime = response.headers.get('Date')
 const expiresAt = new Date(serverTime).getTime() + tokenTTL
 ```
 
 ---
 
-## 10. Sonuç
+## 10. Conclusion
 
-Bu spesifikasyon, **production-grade token lifecycle** için gerekli tüm semantiği tanımlar:
+This specification defines the necessary semantics for a **production-grade token lifecycle**:
 
-✅ **Per-session model** (overhead düşük)
-✅ **Silent refresh** (UX etkisi yok)
-✅ **Multi-tab sync** (race condition korunmalı)
-✅ **Grace window** (in-flight request koruması)
-✅ **Logout semantiği** (beklenti yönetimi)
+✅ **Per-session model** (low overhead)
+✅ **Silent refresh** (no UX impact)
+✅ **Multi-tab sync** (protected against race conditions)
+✅ **Grace window** (protection for in-flight requests)
+✅ **Logout semantics** (expectation management)
 
-**Bir sonraki adım:** One-shot token primitive (high-assurance endpoints için)
-
----
-
-# Part III: One-Shot Token Primitive
-# One-Shot Token Specification
-
-**Versiyon:** 1.0
-**Durum:** Formal Specification
-**Hedef:** High-Assurance Request Authenticity
+**Next Step:** One-shot token primitive for high-assurance endpoints.
 
 ---
 
-## 1. Motivasyon
+# Part III: One-Shot Token Specification
 
-Multi-use CSRF token'lar çoğu senaryo için yeterlidir. Ancak **high-risk endpoint'ler** için replay window kabul edilemez:
-
-- Para transferi
-- Hesap silme
-- Yetki değişikliği
-- İmza işlemleri
-- Kritik konfigürasyon değişikliği
-
-Bu endpoint'ler için **one-shot token** gereklidir: **tek kullanımlık, replay impossible**.
+**Version:** 1.0
+**Status:** Formal Specification
+**Target:** High-Assurance Request Authenticity
 
 ---
 
-## 2. Tasarım Prensipleri
+## 1. Motivation
 
-1. **Single-Use:** Token sadece bir kez kullanılabilir
-2. **Bounded Cache:** Stateless core korunur (küçük TTL-bounded cache)
-3. **Selective:** Sadece high-assurance endpoint'lerde kullanılır
-4. **Backward Compatible:** Normal CSRF token ile birlikte çalışır
+Multi-use CSRF tokens are sufficient for most scenarios. However, for **high-risk endpoints**, the replay window is unacceptable:
+
+- Fund transfers
+- Account deletions
+- Permission changes
+- Signature operations
+- Critical configuration changes
+
+For these endpoints, a **one-shot token** is required: **single-use, relay impossible**.
+
+---
+
+## 2. Design Principles
+
+1. **Single-Use:** Token can be used exactly once.
+2. **Bounded Cache:** Preserves stateless core (small TTL-bounded cache).
+3. **Selective:** Used only on high-assurance endpoints.
+4. **Backward Compatible:** Works alongside normal CSRF tokens.
 
 ---
 
 ## 3. Token Format
 
-### 3.1 Yapı
+### 3.1 Structure
 
 ```
 one_shot_token = base64url(
@@ -1247,7 +1247,7 @@ one_shot_token = base64url(
 )
 ```
 
-**Alanlar:**
+**Fields:**
 
 - **nonce:** 128-bit (crypto.getRandomValues) — **unique identifier**
 - **ts:** unix timestamp (int64)
@@ -1257,7 +1257,7 @@ one_shot_token = base64url(
 
 ### 3.2 Action Binding
 
-**Kritik:** Token belirli bir action'a bağlı olmalı.
+**Critical:** The token must be bound to a specific action.
 
 ```javascript
 // Action identifier
@@ -1271,7 +1271,7 @@ const token = generateOneShotToken({
 })
 ```
 
-**Avantaj:** Token başka endpoint'te kullanılamaz (cross-action replay engellenir).
+**Advantage:** The token cannot be used for any other endpoint (prevents cross-action replay).
 
 ---
 
@@ -1295,7 +1295,7 @@ Response: {
 
 - Same-origin only
 - Authenticated request
-- Rate limited (DoS prevention)
+- Rate-limited (DoS prevention)
 
 ### 4.2 Generation Logic
 
@@ -1319,7 +1319,7 @@ function generateOneShotToken(action, sessionId, userId) {
   // Encode
   const token = base64url(nonce + ts + actionHash + ctx + mac)
 
-  // Cache nonce (TTL = 2-5 dakika)
+  // Cache nonce (TTL = 2-5 minutes)
   nonceCache.set(nonce, { ts, action, used: false }, TTL)
 
   return { token, expiresAt: ts + TTL }
@@ -1332,16 +1332,16 @@ function generateOneShotToken(action, sessionId, userId) {
 
 ```javascript
 const nonceCache = new LRUCache({
-  max: 10000, // Max 10k concurrent one-shot token
-  ttl: 5 * 60 * 1000, // 5 dakika TTL
+  max: 10000, // Max 10k concurrent one-shot tokens
+  ttl: 5 * 60 * 1000, // 5-minute TTL
 })
 ```
 
-**Özellikler:**
+**Properties:**
 
-- Memory bounded (TTL ile)
-- Stateless core korunur (cache geçici)
-- High concurrency support
+- Memory-bounded (via TTL)
+- Preserves stateless core (cache is temporary)
+- Supports high concurrency
 
 ---
 
@@ -1360,7 +1360,7 @@ function validateOneShotToken(token, action, sessionId, userId) {
     return { valid: false, reason: 'expired' }
   }
 
-  // MAC verify (constant-time)
+  // MAC verification (constant-time)
   const expectedMac = hmac(secret, parsed.nonce + parsed.ts + parsed.actionHash + parsed.ctx)
   if (!crypto.timingSafeEqual(parsed.mac, expectedMac)) {
     return { valid: false, reason: 'invalid_mac' }
@@ -1384,7 +1384,7 @@ function validateOneShotToken(token, action, sessionId, userId) {
     return { valid: false, reason: 'nonce_not_found' }
   }
   if (cached.used) {
-    // CRITICAL: Replay attempt
+    // CRITICAL: Replay attempt detected
     logger.error('One-shot token replay attempt', {
       nonce: parsed.nonce,
       action,
@@ -1401,9 +1401,9 @@ function validateOneShotToken(token, action, sessionId, userId) {
 
 ### 5.2 Replay Prevention
 
-**Kritik:** Nonce cache "used" flag ile replay engellenir.
+**Critical:** The nonce cache "used" flag prevents replay.
 
-**Race Condition Koruması:**
+**Race Condition Protection:**
 
 ```javascript
 // Atomic compare-and-swap
@@ -1415,7 +1415,7 @@ function markNonceAsUsed(nonce) {
   )
 }
 
-// Validation içinde
+// Within validation logic
 if (!markNonceAsUsed(parsed.nonce)) {
   return { valid: false, reason: 'replay_attempt' }
 }
@@ -1431,14 +1431,14 @@ if (!markNonceAsUsed(parsed.nonce)) {
 
 ```javascript
 async function deleteAccount() {
-  // 1. One-shot token al
+  // 1. Fetch one-shot token
   const { token } = await fetch('/api/csrf/one-shot', {
     method: 'POST',
     body: JSON.stringify({ action: 'POST:/api/account/delete' }),
     credentials: 'same-origin',
   }).then((r) => r.json())
 
-  // 2. High-risk action'ı execute et
+  // 2. Execute high-risk action
   const response = await fetch('/api/account/delete', {
     method: 'POST',
     headers: { 'X-CSRF-One-Shot-Token': token },
@@ -1449,10 +1449,10 @@ async function deleteAccount() {
 }
 ```
 
-**Step 2: Token Kullanımı**
+**Step 2: Token Usage**
 
-- Token sadece bir kez kullanılabilir
-- Retry → yeni token gerekli
+- Token can be used exactly once.
+- Retries require a new token.
 
 ### 6.2 Server-Side Integration
 
@@ -1460,12 +1460,12 @@ async function deleteAccount() {
 
 ```javascript
 function oneShotTokenMiddleware(req, res, next) {
-  // High-assurance endpoint check
+  // Check for high-assurance endpoint
   if (!isHighAssuranceEndpoint(req.path)) {
-    return next() // Normal CSRF token yeterli
+    return next() // Normal CSRF token is sufficient
   }
 
-  // One-shot token extract
+  // Extract one-shot token
   const token = req.headers['x-csrf-one-shot-token']
   if (!token) {
     return res.status(403).json({
@@ -1518,16 +1518,16 @@ function isHighAssuranceEndpoint(path) {
 ```javascript
 {
   // One-shot token TTL
-  oneShotTTL: 5 * 60 * 1000,      // 5 dakika (kısa)
+  oneShotTTL: 5 * 60 * 1000,      // 5 minutes (short duration)
 
   // Nonce cache
-  nonceCacheSize: 10000,          // Max concurrent token
-  nonceCacheTTL: 5 * 60 * 1000,   // TTL ile aynı
+  nonceCacheSize: 10000,          // Max concurrent tokens
+  nonceCacheTTL: 5 * 60 * 1000,   // Same as TTL
 
   // Rate limiting
   oneShotRateLimit: {
-    windowMs: 60 * 1000,          // 1 dakika
-    max: 10                       // Max 10 token/dakika
+    windowMs: 60 * 1000,          // 1 minute
+    max: 10                       // Max 10 tokens/minute
   }
 }
 ```
@@ -1538,40 +1538,40 @@ function isHighAssuranceEndpoint(path) {
 
 ### 8.1 Nonce Cache Security
 
-**Sorun:** Nonce cache memory attack yüzeyi mi?
+**Question:** Is the nonce cache a memory attack surface?
 
-**Cevap:** Hayır, çünkü:
+**Answer:** No, because:
 
-- TTL bounded (5 dakika)
-- Size bounded (10k max)
+- TTL-bounded (5 minutes)
+- Size-bounded (10k max)
 - LRU eviction
-- Memory footprint: ~1MB (10k \* 100 byte)
+- Memory footprint: ~1MB (10k entries \* ~100 bytes)
 
 ### 8.2 Replay Window
 
 **One-Shot vs Multi-Use:**
 
-- **Multi-Use:** Replay window = TTL (20 dakika)
+- **Multi-Use:** Replay window = TTL (20 minutes)
 - **One-Shot:** Replay window = 0 (impossible)
 
 ### 8.3 DoS Risk
 
-**Sorun:** Saldırgan çok sayıda one-shot token generate edebilir mi?
+**Problem:** Can an attacker generate an excessive number of one-shot tokens?
 
 **Mitigation:**
 
-- Rate limiting (10 token/dakika)
-- Authenticated request
+- Rate limiting (10 tokens/minute)
+- Authenticated requests required
 - Nonce cache size limit (10k)
 
 ### 8.4 Action Binding Bypass
 
-**Sorun:** Token başka action'da kullanılabilir mi?
+**Question:** Can a token be used for a different action?
 
-**Cevap:** Hayır, çünkü:
+**Answer:** No, because:
 
-- Action hash token içinde
-- Validation sırasında action match check
+- Action hash is contained within the token.
+- Action match is verified during validation.
 
 ---
 
@@ -1588,21 +1588,21 @@ function isHighAssuranceEndpoint(path) {
 
 **Validation:**
 
-- Parse: ~10µs
-- HMAC verify: ~50µs
+- Parsing: ~10µs
+- HMAC verification: ~50µs
 - Cache read: ~10µs
 - Cache update (mark used): ~10µs
 - **Total:** ~80µs
 
-**Sonuç:** Minimal overhead (high-assurance endpoint'ler için kabul edilebilir)
+**Summary:** Minimal overhead (acceptable for high-assurance endpoints).
 
 ### 9.2 Memory Footprint
 
 ```
-Nonce cache: 10k entries * 100 byte = 1MB
+Nonce cache: 10k entries * 100 bytes = ~1MB
 ```
 
-**Sonuç:** Negligible (modern server için)
+**Summary:** Negligible for modern server environments.
 
 ---
 
@@ -1633,13 +1633,13 @@ try {
 
 ```javascript
 if (result.reason === 'replay_attempt') {
-  // CRITICAL: Security incident
+  // CRITICAL: Security incident detected
   logger.error('One-shot token replay', {
     sessionId,
     userId,
     action,
   })
-  // Opsiyonel: Session invalidate
+  // Optional: Invalidate session
   invalidateSession(sessionId)
 }
 ```
@@ -1662,17 +1662,17 @@ if (result.reason === 'replay_attempt') {
 
 **Security:**
 
-- [ ] Replay attack (same token twice)
-- [ ] Cross-action attack (token for different endpoint)
+- [ ] Replay attack (same token used twice)
+- [ ] Cross-action attack (token used for different endpoint)
 - [ ] Context mismatch (different session/user)
 - [ ] Expired token rejection
 - [ ] Invalid MAC rejection
 
 **Performance:**
 
-- [ ] High concurrency (1000 concurrent token)
-- [ ] Nonce cache eviction (TTL)
-- [ ] Memory footprint (10k token)
+- [ ] High concurrency (1,000 concurrent tokens)
+- [ ] Nonce cache eviction (via TTL)
+- [ ] Memory footprint verification (10k tokens)
 
 ---
 
@@ -1680,19 +1680,19 @@ if (result.reason === 'replay_attempt') {
 
 ### 12.1 Backward Compatibility
 
-**Aşamalı Rollout:**
+**Phased Rollout:**
 
-1. **Phase 1:** One-shot token generation endpoint ekle
-2. **Phase 2:** High-assurance endpoint'lerde opsiyonel olarak destekle
-3. **Phase 3:** High-assurance endpoint'lerde zorunlu yap
-4. **Phase 4:** Tüm high-risk endpoint'lere genişlet
+1. **Phase 1:** Add one-shot token generation endpoint.
+2. **Phase 2:** Support as optional on high-assurance endpoints.
+3. **Phase 3:** Make mandatory on high-assurance endpoints.
+4. **Phase 4:** Expand to all high-risk endpoints.
 
 ### 12.2 Fallback Strategy
 
-**Geçiş sırasında:**
+**During transition:**
 
 ```javascript
-// One-shot token varsa kullan, yoksa normal CSRF token
+// Use one-shot token if present, otherwise fallback to normal CSRF token
 if (req.headers['x-csrf-one-shot-token']) {
   validateOneShotToken(...);
 } else if (req.headers['x-csrf-token']) {
@@ -1704,20 +1704,20 @@ if (req.headers['x-csrf-one-shot-token']) {
 
 ---
 
-## 13. Sonuç
+## 13. Conclusion
 
-One-shot token, **request authenticity primitive** seviyesinde güvenlik sağlar:
+One-shot tokens provide security at the **request authenticity primitive** level:
 
-✅ **Replay impossible** (nonce cache ile)
-✅ **Action binding** (cross-action replay engellenir)
+✅ **Replay impossible** (via nonce cache)
+✅ **Action binding** (prevents cross-action replay)
 ✅ **Minimal overhead** (~80µs validation)
-✅ **Bounded cache** (stateless core korunur)
-✅ **Selective usage** (sadece high-assurance endpoint'ler)
+✅ **Bounded cache** (preserves stateless core)
+✅ **Selective usage** (targets only high-assurance endpoints)
 
-**Sistem artık:**
+**System Evolution:**
 
-- CSRF middleware → **Request authenticity framework**
-- Token doğrulama → **Cryptographic proof of intent**
+- CSRF Middleware → **Request Authenticity Framework**
+- Token Validation → **Cryptographic Proof of Intent**
 
-**Bir sonraki adım:** Monitoring & Security Telemetry Architecture
+---
 
