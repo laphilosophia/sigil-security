@@ -62,7 +62,7 @@ Traditional CSRF protection often relies on server-side state, which introduces 
 
 ## License
 
-[Add License Type Here, e.g., MIT / Apache 2.0]
+Apache 2.0
 
 ---
 
