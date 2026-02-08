@@ -174,14 +174,14 @@ Implementations:
 
 ## 5. WebCrypto vs Node crypto
 
-| Feature | WebCrypto | Node crypto |
-| --- | --- | --- |
-| Constant-time | Yes | Generally yes |
-| Cross-runtime | Yes | No |
-| Native isolation | Yes | No |
-| Streaming | No | Yes |
-| HSM/KMS | Indirect | Easier |
-| Security model | Modern | Legacy-compatible |
+| Feature          | WebCrypto | Node crypto       |
+| ---------------- | --------- | ----------------- |
+| Constant-time    | Yes       | Generally yes     |
+| Cross-runtime    | Yes       | No                |
+| Native isolation | Yes       | No                |
+| Streaming        | No        | Yes               |
+| HSM/KMS          | Indirect  | Easier            |
+| Security model   | Modern    | Legacy-compatible |
 
 For Sigil → WebCrypto is the correct choice.
 

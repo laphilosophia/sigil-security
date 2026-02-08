@@ -1,0 +1,47 @@
+import eslint from '@eslint/js'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config(
+  {
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '.changeset/**',
+      'coverage/**',
+      '**/tsup.config.ts',
+      '**/vitest.config.ts',
+      'vitest.config.ts',
+      'vitest.workspace.ts',
+    ],
+  },
+  {
+    files: ['**/*.ts'],
+    extends: [eslint.configs.recommended, ...tseslint.configs.strictTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': [
+        'error',
+        {
+          allowExpressions: true,
+          allowTypedFunctionExpressions: true,
+          allowHigherOrderFunctions: true,
+        },
+      ],
+      '@typescript-eslint/prefer-readonly': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      'no-eval': 'error',
+      'no-new-func': 'error',
+    },
+  },
+)

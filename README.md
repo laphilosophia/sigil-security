@@ -24,13 +24,13 @@ Unlike session-based middlewares, Sigil leverages modern browser security signal
 
 Sigil is a monorepo with strict architectural layer separation:
 
-| Package | Scope | Description |
-| --- | --- | --- |
-| `@sigil-security/core` | Cryptographic Primitive | Token generation/validation, HMAC, HKDF, constant-time ops, one-shot tokens. **Zero dependencies.** |
-| `@sigil-security/policy` | Validation Policies | Fetch Metadata, Origin/Referer, context binding, risk tiers, Browser/API mode detection. |
-| `@sigil-security/runtime` | Framework Adapters | Express, Fastify, Hono, Oak, Elysia, native fetch middleware. |
-| `@sigil-security/ops` | Telemetry (Optional) | Pluggable metrics, anomaly detection, structured logging, SIEM export. |
-| `@sigil-security/client` | Browser SDK | Silent refresh, multi-tab sync (BroadcastChannel), leader election, token storage. |
+| Package                   | Scope                   | Description                                                                                         |
+| ------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `@sigil-security/core`    | Cryptographic Primitive | Token generation/validation, HMAC, HKDF, constant-time ops, one-shot tokens. **Zero dependencies.** |
+| `@sigil-security/policy`  | Validation Policies     | Fetch Metadata, Origin/Referer, context binding, risk tiers, Browser/API mode detection.            |
+| `@sigil-security/runtime` | Framework Adapters      | Express, Fastify, Hono, Oak, Elysia, native fetch middleware.                                       |
+| `@sigil-security/ops`     | Telemetry (Optional)    | Pluggable metrics, anomaly detection, structured logging, SIEM export.                              |
+| `@sigil-security/client`  | Browser SDK             | Silent refresh, multi-tab sync (BroadcastChannel), leader election, token storage.                  |
 
 **Dependency direction (one-way only):** `client → runtime → policy → core`
 
@@ -44,12 +44,12 @@ Sigil defines request validity as:
 Valid Request := Integrity ∧ Context ∧ Freshness ∧ Provenance
 ```
 
-| Dimension | Mechanism |
-| --- | --- |
-| **Integrity** | HMAC-SHA256 verification |
-| **Context** | Context binding (session/user/origin hash) |
-| **Freshness** | TTL + nonce + optional one-shot replay prevention |
-| **Provenance** | Origin header + Fetch Metadata policy signals |
+| Dimension      | Mechanism                                         |
+| -------------- | ------------------------------------------------- |
+| **Integrity**  | HMAC-SHA256 verification                          |
+| **Context**    | Context binding (session/user/origin hash)        |
+| **Freshness**  | TTL + nonce + optional one-shot replay prevention |
+| **Provenance** | Origin header + Fetch Metadata policy signals     |
 
 This model naturally covers: CSRF, replay protection, request forgery, action-level security, stateless authenticity, request provenance, intent verification, incident visibility, key compromise resilience, and client diversity.
 
@@ -57,14 +57,14 @@ This model naturally covers: CSRF, replay protection, request forgery, action-le
 
 ## Documentation
 
-| Document | Audience | Description |
-| --- | --- | --- |
-| [Boundary Specification](./docs/BOUNDARY_SPECIFICATION.md) | Core contributors, architects | What the core primitive MUST and MUST NOT do. **Read first.** |
-| [Technical Specification](./docs/SPECIFICATION.md) | Developers, implementers | Token model, validation layers, lifecycle, one-shot tokens. |
-| [Operations Manual](./docs/OPERATIONS.md) | SRE, security teams | Metric taxonomy, anomaly detection, incident response runbook. |
-| [Model Generalization](./docs/MODEL_GENERALIZATION.md) | Architects, product | Extended security model beyond CSRF — request intent verification. |
-| [Crypto Analysis](./docs/CRYPTO_ANALYSIS.md) | Core contributors | WebCrypto evaluation, limitations, domain separation, abstraction layer rationale. |
-| [Documentation Index](./docs/README.md) | Everyone | Quick-start guide and navigation map. |
+| Document                                                   | Audience                      | Description                                                                        |
+| ---------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------- |
+| [Boundary Specification](./docs/BOUNDARY_SPECIFICATION.md) | Core contributors, architects | What the core primitive MUST and MUST NOT do. **Read first.**                      |
+| [Technical Specification](./docs/SPECIFICATION.md)         | Developers, implementers      | Token model, validation layers, lifecycle, one-shot tokens.                        |
+| [Operations Manual](./docs/OPERATIONS.md)                  | SRE, security teams           | Metric taxonomy, anomaly detection, incident response runbook.                     |
+| [Model Generalization](./docs/MODEL_GENERALIZATION.md)     | Architects, product           | Extended security model beyond CSRF — request intent verification.                 |
+| [Crypto Analysis](./docs/CRYPTO_ANALYSIS.md)               | Core contributors             | WebCrypto evaluation, limitations, domain separation, abstraction layer rationale. |
+| [Documentation Index](./docs/README.md)                    | Everyone                      | Quick-start guide and navigation map.                                              |
 
 ---
 
@@ -95,6 +95,7 @@ Traditional CSRF protection relies on server-side state, which introduces latenc
 **Specifications:** Production-Ready (Phase 7 Complete)
 
 **Architecture:**
+
 - Monorepo with pnpm workspaces
 - TypeScript strict mode
 - ESM + CJS dual output via tsup

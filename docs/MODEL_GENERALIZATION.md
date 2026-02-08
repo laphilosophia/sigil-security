@@ -15,9 +15,9 @@ This specification defines how the Sigil primitive extends beyond CSRF into a br
 
 This document:
 
-* Does **not** introduce new features
-* Does **not** expand the core primitive
-* Does **not** define a framework
+- Does **not** introduce new features
+- Does **not** expand the core primitive
+- Does **not** define a framework
 
 It formally describes the **security problem space naturally covered by the existing primitive.**
 
@@ -27,20 +27,20 @@ It formally describes the **security problem space naturally covered by the exis
 
 Sigil **DOES:**
 
-* Cryptographically verify request integrity
-* Verify contextual correctness of a request
-* Constrain and observe replay behavior
-* Produce measurable request intent signals
+- Cryptographically verify request integrity
+- Verify contextual correctness of a request
+- Constrain and observe replay behavior
+- Produce measurable request intent signals
 
 Sigil **DOES NOT:**
 
-* Perform authentication
-* Perform authorization
-* Manage sessions
-* Filter traffic
-* Provide rate limiting
-* Act as a WAF
-* Implement identity or access control
+- Perform authentication
+- Perform authorization
+- Manage sessions
+- Filter traffic
+- Provide rate limiting
+- Act as a WAF
+- Implement identity or access control
 
 ---
 
@@ -50,10 +50,10 @@ Sigil **DOES NOT:**
 
 Sigil verifies:
 
-* Integrity → HMAC verification
-* Context → Context binding
-* Freshness → TTL / nonce / replay model
-* Provenance → Policy signals (Origin / Fetch Metadata)
+- Integrity → HMAC verification
+- Context → Context binding
+- Freshness → TTL / nonce / replay model
+- Provenance → Policy signals (Origin / Fetch Metadata)
 
 This produces:
 
@@ -177,12 +177,12 @@ It is the **natural application surface of the same primitive.**
 
 Sigil MUST NOT evolve into:
 
-* Authentication system
-* Identity or access management
-* Session manager
-* Rate limiter
-* Traffic filter / WAF
-* General security framework
+- Authentication system
+- Identity or access management
+- Session manager
+- Rate limiter
+- Traffic filter / WAF
+- General security framework
 
 Sigil’s sole responsibility:
 
@@ -204,9 +204,9 @@ Valid Request :=
 
 Failure in any dimension produces:
 
-* Deterministic rejection
-* Uniform failure response
-* Structured security signal
+- Deterministic rejection
+- Uniform failure response
+- Structured security signal
 
 ---
 
@@ -214,9 +214,9 @@ Failure in any dimension produces:
 
 Sigil is:
 
-* Not a CSRF middleware
-* Not a framework
-* Not an authentication system
+- Not a CSRF middleware
+- Not a framework
+- Not an authentication system
 
 Sigil is:
 
@@ -226,7 +226,7 @@ Sigil is:
 
 If needed, this can be extended next into:
 
-* Formal Security Model (mathematical / adversarial)
-* Product Positioning Spec
-* Enterprise Capability Mapping
-* Sigil vs Traditional Security Model Comparison
+- Formal Security Model (mathematical / adversarial)
+- Product Positioning Spec
+- Enterprise Capability Mapping
+- Sigil vs Traditional Security Model Comparison

@@ -1,0 +1,46 @@
+{
+  "name": "@sigil-security/core",
+  "version": "0.0.0",
+  "description": "Cryptographic request intent verification primitive — core",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "csrf",
+    "security",
+    "cryptography",
+    "hmac",
+    "token",
+    "webcrypto"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigil-security/sigil-security.git",
+    "directory": "packages/core"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}

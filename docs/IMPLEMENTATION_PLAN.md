@@ -108,6 +108,7 @@ client → runtime → policy → core
 ```
 
 **Governing Principle:** Every implementation decision is validated against:
+
 1. `BOUNDARY_SPECIFICATION.md` — What the core MUST and MUST NOT do
 2. `SPECIFICATION.md` — Token model, validation layers, lifecycle
 3. `CRYPTO_ANALYSIS.md` — Cryptographic stack decisions
@@ -116,16 +117,16 @@ client → runtime → policy → core
 
 ## Technology Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Language | TypeScript (strict mode) | Type safety for crypto code, auditability |
-| Monorepo | pnpm workspaces | Fast, strict, native workspace support |
-| Packages | 5 (`core`, `policy`, `runtime`, `ops`, `client`) | Layer separation per BOUNDARY_SPECIFICATION |
-| Crypto | WebCrypto API only | Zero dependencies, cross-runtime, constant-time |
-| Build | tsup (ESM + CJS dual output) | Fast, simple, dual-format |
-| Test | vitest (unit + integration + benchmark) | Fast, native TS, bench support |
-| Lint | ESLint (flat config) + Prettier | Modern config, no legacy |
-| CI | GitHub Actions | Standard, matrix support |
+| Decision | Choice                                           | Rationale                                       |
+| -------- | ------------------------------------------------ | ----------------------------------------------- |
+| Language | TypeScript (strict mode)                         | Type safety for crypto code, auditability       |
+| Monorepo | pnpm workspaces                                  | Fast, strict, native workspace support          |
+| Packages | 5 (`core`, `policy`, `runtime`, `ops`, `client`) | Layer separation per BOUNDARY_SPECIFICATION     |
+| Crypto   | WebCrypto API only                               | Zero dependencies, cross-runtime, constant-time |
+| Build    | tsup (ESM + CJS dual output)                     | Fast, simple, dual-format                       |
+| Test     | vitest (unit + integration + benchmark)          | Fast, native TS, bench support                  |
+| Lint     | ESLint (flat config) + Prettier                  | Modern config, no legacy                        |
+| CI       | GitHub Actions                                   | Standard, matrix support                        |
 
 ---
 
@@ -137,19 +138,19 @@ client → runtime → policy → core
 
 ### 0.1 Workspace Configuration
 
-| Task | File(s) | Details |
-|------|---------|---------|
-| Root package.json | `package.json` | `"private": true`, pnpm workspace scripts (`build`, `test`, `lint`, `format`, `typecheck`) |
-| pnpm workspace | `pnpm-workspace.yaml` | `packages: ["packages/*"]` |
-| Node version | `.node-version` | `18` (already exists) |
-| Package manager | `.npmrc` | `shamefully-hoist=false`, `strict-peer-dependencies=true` |
+| Task              | File(s)               | Details                                                                                    |
+| ----------------- | --------------------- | ------------------------------------------------------------------------------------------ |
+| Root package.json | `package.json`        | `"private": true`, pnpm workspace scripts (`build`, `test`, `lint`, `format`, `typecheck`) |
+| pnpm workspace    | `pnpm-workspace.yaml` | `packages: ["packages/*"]`                                                                 |
+| Node version      | `.node-version`       | `18` (already exists)                                                                      |
+| Package manager   | `.npmrc`              | `shamefully-hoist=false`, `strict-peer-dependencies=true`                                  |
 
 ### 0.2 TypeScript Configuration
 
-| Task | File(s) | Details |
-|------|---------|---------|
-| Root tsconfig | `tsconfig.base.json` | `strict: true`, `target: "ES2022"`, `module: "ESNext"`, `moduleResolution: "bundler"`, path aliases |
-| Per-package tsconfig | `packages/*/tsconfig.json` | Extends root, package-specific `include`/`outDir`, project references |
+| Task                 | File(s)                    | Details                                                                                             |
+| -------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
+| Root tsconfig        | `tsconfig.base.json`       | `strict: true`, `target: "ES2022"`, `module: "ESNext"`, `moduleResolution: "bundler"`, path aliases |
+| Per-package tsconfig | `packages/*/tsconfig.json` | Extends root, package-specific `include`/`outDir`, project references                               |
 
 **TypeScript Strict Settings (non-negotiable):**
 
@@ -167,33 +168,33 @@ client → runtime → policy → core
 
 ### 0.3 Build System
 
-| Task | File(s) | Details |
-|------|---------|---------|
+| Task               | File(s)                     | Details                                                       |
+| ------------------ | --------------------------- | ------------------------------------------------------------- |
 | tsup configuration | `packages/*/tsup.config.ts` | ESM + CJS dual output, `.d.ts` generation, `target: "node18"` |
-| Package exports | `packages/*/package.json` | `"exports"` field with `import`/`require`/`types` conditions |
+| Package exports    | `packages/*/package.json`   | `"exports"` field with `import`/`require`/`types` conditions  |
 
 ### 0.4 Code Quality
 
-| Task | File(s) | Details |
-|------|---------|---------|
-| ESLint config | `eslint.config.js` | Flat config, TypeScript rules, no-any enforcement, security-specific rules |
-| Prettier config | `.prettierrc` | `semi: false`, `singleQuote: true`, `trailingComma: "all"`, `printWidth: 100` |
-| EditorConfig | `.editorconfig` | Consistent formatting across editors |
+| Task            | File(s)            | Details                                                                       |
+| --------------- | ------------------ | ----------------------------------------------------------------------------- |
+| ESLint config   | `eslint.config.js` | Flat config, TypeScript rules, no-any enforcement, security-specific rules    |
+| Prettier config | `.prettierrc`      | `semi: false`, `singleQuote: true`, `trailingComma: "all"`, `printWidth: 100` |
+| EditorConfig    | `.editorconfig`    | Consistent formatting across editors                                          |
 
 ### 0.5 Testing Framework
 
-| Task | File(s) | Details |
-|------|---------|---------|
-| Vitest root config | `vitest.config.ts` | Workspace mode, coverage thresholds (>90% lines, >85% branches) |
-| Per-package vitest | `packages/*/vitest.config.ts` | Package-specific setup, benchmark support |
+| Task               | File(s)                       | Details                                                         |
+| ------------------ | ----------------------------- | --------------------------------------------------------------- |
+| Vitest root config | `vitest.config.ts`            | Workspace mode, coverage thresholds (>90% lines, >85% branches) |
+| Per-package vitest | `packages/*/vitest.config.ts` | Package-specific setup, benchmark support                       |
 
 ### 0.6 CI/CD
 
-| Task | File(s) | Details |
-|------|---------|---------|
-| GitHub Actions CI | `.github/workflows/ci.yml` | Matrix: Node 18/20/22, pnpm install, typecheck, lint, test, build |
-| Cross-runtime CI | `.github/workflows/cross-runtime.yml` | Node, Bun, Deno matrix for core package |
-| Release workflow | `.github/workflows/release.yml` | Changesets-based version bump and npm publish |
+| Task              | File(s)                               | Details                                                           |
+| ----------------- | ------------------------------------- | ----------------------------------------------------------------- |
+| GitHub Actions CI | `.github/workflows/ci.yml`            | Matrix: Node 18/20/22, pnpm install, typecheck, lint, test, build |
+| Cross-runtime CI  | `.github/workflows/cross-runtime.yml` | Node, Bun, Deno matrix for core package                           |
+| Release workflow  | `.github/workflows/release.yml`       | Changesets-based version bump and npm publish                     |
 
 ### 0.7 Package Scaffolding
 
@@ -314,6 +315,7 @@ packages/
 **Reference:** `BOUNDARY_SPECIFICATION.md`, `SPECIFICATION.md` Part I, `CRYPTO_ANALYSIS.md`
 
 This is the **most critical phase**. Every function in core must satisfy:
+
 - Deterministic (same input → same output)
 - Side-effect free (except ephemeral nonce cache)
 - I/O free (no network, filesystem, database)
@@ -324,15 +326,16 @@ This is the **most critical phase**. Every function in core must satisfy:
 
 **File:** `src/encoding.ts`
 
-| Function | Signature | Spec Reference |
-|----------|-----------|----------------|
-| `toBase64Url` | `(buffer: Uint8Array) => string` | RFC 4648, no padding |
-| `fromBase64Url` | `(encoded: string) => Uint8Array` | RFC 4648, no padding |
+| Function        | Signature                                                     | Spec Reference                    |
+| --------------- | ------------------------------------------------------------- | --------------------------------- |
+| `toBase64Url`   | `(buffer: Uint8Array) => string`                              | RFC 4648, no padding              |
+| `fromBase64Url` | `(encoded: string) => Uint8Array`                             | RFC 4648, no padding              |
 | `writeUint64BE` | `(buffer: Uint8Array, value: number, offset: number) => void` | Token ts field (big-endian int64) |
-| `readUint64BE` | `(buffer: Uint8Array, offset: number) => number` | Token ts field parsing |
-| `concatBuffers` | `(...buffers: Uint8Array[]) => Uint8Array` | Token assembly |
+| `readUint64BE`  | `(buffer: Uint8Array, offset: number) => number`              | Token ts field parsing            |
+| `concatBuffers` | `(...buffers: Uint8Array[]) => Uint8Array`                    | Token assembly                    |
 
 **Constraints:**
+
 - No external dependencies
 - Pure functions only
 - Used by both regular and one-shot token modules
@@ -366,6 +369,7 @@ class WebCryptoCryptoProvider implements CryptoProvider {
 ```
 
 **Constraints:**
+
 - `WebCryptoCryptoProvider` is the ONLY shipped implementation
 - Extension point for KMS/HSM documented but not built until needed
 - Core functions depend on `CryptoProvider`, not concrete `crypto.subtle`
@@ -385,18 +389,19 @@ master
  └─ internal  → HKDF(master, salt="sigil-v1", info="internal-signing-key-"+kid)
 ```
 
-| Function | Details |
-|----------|---------|
+| Function                                        | Details                                          |
+| ----------------------------------------------- | ------------------------------------------------ |
 | `deriveSigningKey(crypto, master, kid, domain)` | HKDF-SHA256 with domain-separated info parameter |
 
 #### Keyring (`key-manager.ts`)
 
-| Type | Details |
-|------|---------|
-| `Keyring` | Max 3 keys (active + 2 previous), **per domain** |
-| `KeyManager` | Create keyring, rotate, resolve by kid |
+| Type         | Details                                          |
+| ------------ | ------------------------------------------------ |
+| `Keyring`    | Max 3 keys (active + 2 previous), **per domain** |
+| `KeyManager` | Create keyring, rotate, resolve by kid           |
 
 **Operations:**
+
 - `createKeyring(crypto, masterSecret, initialKid, domain)` → generates initial keyring
 - `rotateKey(keyring, crypto, masterSecret, domain)` → new key becomes active, oldest dropped
 - `resolveKey(keyring, kid)` → find key by kid, returns undefined if not found
@@ -413,13 +418,13 @@ type TokenString = string & { readonly __brand: 'SigilToken' }
 type OneShotTokenString = string & { readonly __brand: 'SigilOneShotToken' }
 
 // Token structure constants
-const KID_SIZE = 1        // 1 byte (8-bit key ID)
-const NONCE_SIZE = 16     // 16 bytes (128-bit)
-const TIMESTAMP_SIZE = 8  // 8 bytes (int64 big-endian)
-const CONTEXT_SIZE = 32   // 32 bytes (SHA-256 hash, ALWAYS present)
-const MAC_SIZE = 32       // 32 bytes (HMAC-SHA256, full, NO truncation)
+const KID_SIZE = 1 // 1 byte (8-bit key ID)
+const NONCE_SIZE = 16 // 16 bytes (128-bit)
+const TIMESTAMP_SIZE = 8 // 8 bytes (int64 big-endian)
+const CONTEXT_SIZE = 32 // 32 bytes (SHA-256 hash, ALWAYS present)
+const MAC_SIZE = 32 // 32 bytes (HMAC-SHA256, full, NO truncation)
 
-const TOKEN_RAW_SIZE = 89   // kid(1) + nonce(16) + ts(8) + ctx(32) + mac(32)
+const TOKEN_RAW_SIZE = 89 // kid(1) + nonce(16) + ts(8) + ctx(32) + mac(32)
 const ONESHOT_RAW_SIZE = 120 // nonce(16) + ts(8) + action(32) + ctx(32) + mac(32)
 
 // Parsed token
@@ -463,11 +468,11 @@ One-shot: nonce[16] + ts[8] + action[32] + ctx[32] + mac[32] = 120 bytes (FIXED)
 
 **File:** `src/token.ts`
 
-| Function | Signature |
-|----------|-----------|
-| `generateToken` | `(crypto, key, kid, context?, now?) => Promise<GenerationResult>` |
-| `parseToken` | `(tokenString) => ParsedToken \| null` |
-| `serializeToken` | `(kid, nonce, ts, ctx, mac) => TokenString` |
+| Function         | Signature                                                         |
+| ---------------- | ----------------------------------------------------------------- |
+| `generateToken`  | `(crypto, key, kid, context?, now?) => Promise<GenerationResult>` |
+| `parseToken`     | `(tokenString) => ParsedToken \| null`                            |
+| `serializeToken` | `(kid, nonce, ts, ctx, mac) => TokenString`                       |
 
 **Token Wire Format (89 bytes raw → base64url encoded):**
 
@@ -476,6 +481,7 @@ One-shot: nonce[16] + ts[8] + action[32] + ctx[32] + mac[32] = 120 bytes (FIXED)
 ```
 
 **Generation Steps:**
+
 1. Generate nonce: `crypto.randomBytes(16)`
 2. Get current timestamp: `now` parameter (default `Date.now()`)
 3. Compute context: `ctx` provided or `SHA-256(0x00)` (zero-pad, ALWAYS 32 bytes)
@@ -484,6 +490,7 @@ One-shot: nonce[16] + ts[8] + action[32] + ctx[32] + mac[32] = 120 bytes (FIXED)
 6. Encode: `base64url(kid | nonce | ts | ctx | mac)`
 
 **Parse Steps (fixed offsets, no length oracle):**
+
 1. Decode base64url
 2. Verify raw length === 89 bytes (constant-time length check)
 3. Extract fields at fixed offsets: kid@0, nonce@1, ts@17, ctx@25, mac@57
@@ -492,10 +499,10 @@ One-shot: nonce[16] + ts[8] + action[32] + ctx[32] + mac[32] = 120 bytes (FIXED)
 
 **File:** `src/validation.ts`
 
-| Function | Signature |
-|----------|-----------|
+| Function        | Signature                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
 | `validateToken` | `(crypto, keyring, tokenString, expectedContext?, ttlMs?, graceWindowMs?, now?) => Promise<ValidationResult>` |
-| `validateTTL` | `(tokenTimestamp, ttlMs, graceWindowMs, now) => { withinTTL, inGraceWindow }` |
+| `validateTTL`   | `(tokenTimestamp, ttlMs, graceWindowMs, now) => { withinTTL, inGraceWindow }`                                 |
 
 **Deterministic Failure Model (CRITICAL — spec Section 5.8):**
 
@@ -547,6 +554,7 @@ async function validateToken(...): Promise<ValidationResult> {
 ```
 
 **Constraints:**
+
 - `reason` captures the LAST failure (internal logging only)
 - Client receives ONLY `{ valid: false, reason: "CSRF validation failed" }` (uniform error)
 
@@ -554,12 +562,13 @@ async function validateToken(...): Promise<ValidationResult> {
 
 **File:** `src/context.ts`
 
-| Function | Signature |
-|----------|-----------|
+| Function         | Signature                                                |
+| ---------------- | -------------------------------------------------------- |
 | `computeContext` | `(crypto, ...bindings: string[]) => Promise<Uint8Array>` |
-| `emptyContext` | `(crypto) => Promise<Uint8Array>` |
+| `emptyContext`   | `(crypto) => Promise<Uint8Array>`                        |
 
 **Logic:**
+
 - If bindings provided: `SHA-256(binding1 + binding2 + ...)` → 32 bytes
 - If no bindings: `SHA-256(0x00)` → 32 bytes (zero-pad, NEVER empty)
 - Context is ALWAYS 32 bytes — eliminates length oracle
@@ -574,13 +583,14 @@ async function validateToken(...): Promise<ValidationResult> {
 [ nonce:16 ][ ts:8 ][ action:32 ][ ctx:32 ][ mac:32 ]
 ```
 
-| Function | Signature |
-|----------|-----------|
-| `generateOneShotToken` | `(crypto, key, action, context?, now?) => Promise<OneShotGenerationResult>` |
-| `parseOneShotToken` | `(tokenString) => ParsedOneShotToken \| null` |
+| Function               | Signature                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `generateOneShotToken` | `(crypto, key, action, context?, now?) => Promise<OneShotGenerationResult>`                                           |
+| `parseOneShotToken`    | `(tokenString) => ParsedOneShotToken \| null`                                                                         |
 | `validateOneShotToken` | `(crypto, key, tokenString, expectedAction, nonceCache, expectedContext?, ttlMs?, now?) => Promise<ValidationResult>` |
 
 **Action Binding:**
+
 - `action = SHA-256("POST:/api/account/delete")` → 32 bytes
 - Token is bound to a specific action — cross-action replay impossible
 
@@ -593,7 +603,7 @@ async function validateToken(...): Promise<ValidationResult> {
 ```typescript
 interface NonceCache {
   has(nonce: Uint8Array): boolean
-  markUsed(nonce: Uint8Array): boolean  // atomic CAS: returns true if successfully marked
+  markUsed(nonce: Uint8Array): boolean // atomic CAS: returns true if successfully marked
   add(nonce: Uint8Array, ttlMs: number): void
   readonly size: number
 }
@@ -601,13 +611,14 @@ interface NonceCache {
 
 **Implementation:** In-memory LRU + TTL (custom implementation — no external dependency)
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| Max entries | 10,000 | Memory-bounded (~1MB at 10k * ~100 bytes) |
-| TTL | 5 minutes | Matches one-shot token TTL |
-| Eviction | LRU | Oldest entries first when capacity reached |
+| Parameter   | Value     | Rationale                                  |
+| ----------- | --------- | ------------------------------------------ |
+| Max entries | 10,000    | Memory-bounded (~1MB at 10k \* ~100 bytes) |
+| TTL         | 5 minutes | Matches one-shot token TTL                 |
+| Eviction    | LRU       | Oldest entries first when capacity reached |
 
 **Constraints:**
+
 - `markUsed` is atomic compare-and-swap (prevent race conditions)
 - Cache is an optimization, NOT a security guarantee
 - Must fail-open if cache is unavailable
@@ -725,11 +736,12 @@ interface PolicyValidator {
 
 **File:** `src/fetch-metadata.ts`
 
-| Function | Details |
-|----------|---------|
+| Function                            | Details                     |
+| ----------------------------------- | --------------------------- |
 | `createFetchMetadataPolicy(config)` | Returns a `PolicyValidator` |
 
 **Logic (from SPECIFICATION.md Section 5.1):**
+
 - `Sec-Fetch-Site: same-origin` → allow
 - `Sec-Fetch-Site: same-site` → allow (log cross-origin if Origin differs)
 - `Sec-Fetch-Site: cross-site` → reject (state-changing request)
@@ -739,6 +751,7 @@ interface PolicyValidator {
   - `legacyBrowserMode: 'strict'` → reject
 
 **Edge Cases:**
+
 - Service Worker requests: fallback to Origin/Referer
 - Browser extension requests: reject (`Sec-Fetch-Site: none`)
 - Same-site but cross-origin (subdomain): allow but log
@@ -747,11 +760,12 @@ interface PolicyValidator {
 
 **File:** `src/origin.ts`
 
-| Function | Details |
-|----------|---------|
+| Function                     | Details                     |
+| ---------------------------- | --------------------------- |
 | `createOriginPolicy(config)` | Returns a `PolicyValidator` |
 
 **Logic (from SPECIFICATION.md Section 5.2):**
+
 - Origin header present → strict match against allowed origins (trusted origins list)
 - Origin absent → Referer header fallback (extract origin from Referer URL)
 - Both absent → reject (no provenance signal)
@@ -760,8 +774,8 @@ interface PolicyValidator {
 
 **File:** `src/method.ts`
 
-| Function | Details |
-|----------|---------|
+| Function                      | Details                     |
+| ----------------------------- | --------------------------- |
 | `createMethodPolicy(config?)` | Returns a `PolicyValidator` |
 
 **Default Protected Methods:** `POST`, `PUT`, `PATCH`, `DELETE`
@@ -771,8 +785,8 @@ interface PolicyValidator {
 
 **File:** `src/content-type.ts`
 
-| Function | Details |
-|----------|---------|
+| Function                           | Details                     |
+| ---------------------------------- | --------------------------- |
 | `createContentTypePolicy(config?)` | Returns a `PolicyValidator` |
 
 **Allowed:** `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data`
@@ -781,11 +795,12 @@ interface PolicyValidator {
 
 **File:** `src/mode-detection.ts`
 
-| Function | Details |
-|----------|---------|
+| Function                     | Details                      |
+| ---------------------------- | ---------------------------- |
 | `detectClientMode(metadata)` | Returns `'browser' \| 'api'` |
 
 **Logic (from SPECIFICATION.md Section 8.2):**
+
 - `Sec-Fetch-Site` present → Browser Mode (full multi-layer: Fetch Metadata + Origin + Token)
 - `Sec-Fetch-Site` absent → API Mode (token-only, context binding recommended)
 - Manual override: `X-Client-Type: api` → Force API Mode
@@ -794,11 +809,11 @@ interface PolicyValidator {
 
 **File:** `src/context-binding.ts`
 
-| Tier | Binding | Failure Mode | Use Case |
-|------|---------|-------------|----------|
-| Low Assurance | Optional / soft-fail | Log only | Read endpoints |
-| Medium Assurance | Session ID hash, soft-fail | Log + allow (5min grace) | Settings change |
-| High Assurance | Session + User + Origin, fail-closed | Reject + audit | Money transfer |
+| Tier             | Binding                              | Failure Mode             | Use Case        |
+| ---------------- | ------------------------------------ | ------------------------ | --------------- |
+| Low Assurance    | Optional / soft-fail                 | Log only                 | Read endpoints  |
+| Medium Assurance | Session ID hash, soft-fail           | Log + allow (5min grace) | Settings change |
+| High Assurance   | Session + User + Origin, fail-closed | Reject + audit           | Money transfer  |
 
 ### 2.8 Policy Composition
 
@@ -817,6 +832,7 @@ function createPolicyChain(policies: PolicyValidator[]): PolicyValidator {
 **File:** `src/token-transport.ts`
 
 **Precedence (from SPECIFICATION.md Section 8.3):**
+
 1. Custom Header: `X-CSRF-Token`
 2. Request Body (JSON): `{ "csrf_token": "..." }`
 3. Request Body (form): `csrf_token=...`
@@ -858,25 +874,25 @@ Multiple tokens present → first match wins, log warning.
 interface SigilConfig {
   // Core
   readonly masterSecret: ArrayBuffer | string
-  readonly tokenTTL?: number           // default: 20 * 60 * 1000 (20min)
-  readonly graceWindow?: number        // default: 60 * 1000 (60s)
+  readonly tokenTTL?: number // default: 20 * 60 * 1000 (20min)
+  readonly graceWindow?: number // default: 60 * 1000 (60s)
 
   // Policy
   readonly allowedOrigins: readonly string[]
-  readonly legacyBrowserMode?: 'degraded' | 'strict'  // default: 'degraded'
-  readonly allowApiMode?: boolean      // default: true
-  readonly protectedMethods?: readonly string[]  // default: ['POST','PUT','PATCH','DELETE']
+  readonly legacyBrowserMode?: 'degraded' | 'strict' // default: 'degraded'
+  readonly allowApiMode?: boolean // default: true
+  readonly protectedMethods?: readonly string[] // default: ['POST','PUT','PATCH','DELETE']
 
   // Context binding
   readonly contextBinding?: ContextBindingConfig
 
   // One-shot
   readonly oneShotEnabled?: boolean
-  readonly oneShotTTL?: number         // default: 5 * 60 * 1000 (5min)
+  readonly oneShotTTL?: number // default: 5 * 60 * 1000 (5min)
 
   // Token transport
-  readonly headerName?: string         // default: 'x-csrf-token'
-  readonly oneShotHeaderName?: string  // default: 'x-csrf-one-shot-token'
+  readonly headerName?: string // default: 'x-csrf-token'
+  readonly oneShotHeaderName?: string // default: 'x-csrf-one-shot-token'
 
   // CryptoProvider override
   readonly cryptoProvider?: CryptoProvider
@@ -896,19 +912,20 @@ type MetadataExtractor<TRequest> = (req: TRequest) => RequestMetadata
 ### 3.3 Framework Adapters
 
 Each adapter follows the same pattern:
+
 1. Extract `RequestMetadata` from framework-specific request object
 2. Pass to policy chain
 3. If token validation needed, pass to core
 4. Return framework-specific response
 
-| Adapter | File | Framework Type |
-|---------|------|---------------|
-| Express | `src/adapters/express.ts` | `RequestHandler` middleware (`req/res/next`) |
-| Fastify | `src/adapters/fastify.ts` | `FastifyPluginCallback` (hook/plugin + schema) |
-| Hono | `src/adapters/hono.ts` | `MiddlewareHandler` (`c.req`/`c.res`) |
-| Oak | `src/adapters/oak.ts` | Oak middleware (Deno) |
-| Elysia | `src/adapters/elysia.ts` | Elysia plugin (Bun) |
-| Native Fetch | `src/adapters/fetch.ts` | `Request/Response` API (Edge runtime) |
+| Adapter      | File                      | Framework Type                                 |
+| ------------ | ------------------------- | ---------------------------------------------- |
+| Express      | `src/adapters/express.ts` | `RequestHandler` middleware (`req/res/next`)   |
+| Fastify      | `src/adapters/fastify.ts` | `FastifyPluginCallback` (hook/plugin + schema) |
+| Hono         | `src/adapters/hono.ts`    | `MiddlewareHandler` (`c.req`/`c.res`)          |
+| Oak          | `src/adapters/oak.ts`     | Oak middleware (Deno)                          |
+| Elysia       | `src/adapters/elysia.ts`  | Elysia plugin (Bun)                            |
+| Native Fetch | `src/adapters/fetch.ts`   | `Request/Response` API (Edge runtime)          |
 
 **Framework packages are PEER dependencies** — not bundled.
 
@@ -971,14 +988,15 @@ Returns: `{ token, expiresAt }` (regular) or `{ token, expiresAt, action }` (one
 
 **File:** `src/refresh.ts`
 
-| Parameter | Default | Details |
-|-----------|---------|---------|
-| `tokenTTL` | 20min | Token lifetime |
-| `refreshWindow` | 0.25 (25%) | Refresh in final 25% of TTL |
-| `refreshInterval` | 60s | Check every 60 seconds |
-| `graceWindow` | 60s | Overlap for in-flight requests |
+| Parameter         | Default    | Details                        |
+| ----------------- | ---------- | ------------------------------ |
+| `tokenTTL`        | 20min      | Token lifetime                 |
+| `refreshWindow`   | 0.25 (25%) | Refresh in final 25% of TTL    |
+| `refreshInterval` | 60s        | Check every 60 seconds         |
+| `graceWindow`     | 60s        | Overlap for in-flight requests |
 
 **Logic:**
+
 - Check periodically: `remaining < ttl * 0.25` → trigger refresh
 - `GET /api/csrf/token` with `credentials: 'same-origin'`
 - On success: update storage, broadcast to other tabs
@@ -996,6 +1014,7 @@ Returns: `{ token, expiresAt }` (regular) or `{ token, expiresAt, action }` (one
 **File:** `src/leader.ts`
 
 **Web Locks API:** `navigator.locks.request('sigil_refresh_lock', { ifAvailable: true }, ...)`
+
 - Only the leader tab performs refresh; other tabs listen
 - Prevents simultaneous refresh race conditions
 
@@ -1081,6 +1100,7 @@ Wraps any runtime adapter middleware with timing, counting, and anomaly detectio
 **File:** `src/anomaly.ts`
 
 Baseline + threshold model from `OPERATIONS.md` Section 4:
+
 - Baseline established over 7-day window
 - Warning: 2x baseline, Critical: 5x baseline
 - One-shot replay: any count > 0 is CRITICAL
@@ -1114,45 +1134,45 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ### 6.1 Unit Tests (per package)
 
-| Package | Target Coverage |
-|---------|----------------|
-| core | >95% lines, >90% branches |
-| policy | >90% lines, >85% branches |
+| Package | Target Coverage           |
+| ------- | ------------------------- |
+| core    | >95% lines, >90% branches |
+| policy  | >90% lines, >85% branches |
 | runtime | >85% lines, >80% branches |
-| client | >85% lines, >80% branches |
-| ops | >80% lines, >75% branches |
+| client  | >85% lines, >80% branches |
+| ops     | >80% lines, >75% branches |
 
 ### 6.2 Security Tests
 
-| Category | Tests |
-|----------|-------|
-| **Replay** | Same token used twice (regular), one-shot token replay, cross-action replay |
-| **Forgery** | Invalid MAC, modified payload, truncated token, zero-padded token |
-| **Fuzzing** | Random bytes as token, oversized input, unicode edge cases, empty input |
-| **Boundary** | Exact TTL expiry, grace window boundary (±1ms), keyring rotation overlap |
-| **Side-Channel** | No early return verification, constant-time MAC check, no error oracle |
+| Category           | Tests                                                                            |
+| ------------------ | -------------------------------------------------------------------------------- |
+| **Replay**         | Same token used twice (regular), one-shot token replay, cross-action replay      |
+| **Forgery**        | Invalid MAC, modified payload, truncated token, zero-padded token                |
+| **Fuzzing**        | Random bytes as token, oversized input, unicode edge cases, empty input          |
+| **Boundary**       | Exact TTL expiry, grace window boundary (±1ms), keyring rotation overlap         |
+| **Side-Channel**   | No early return verification, constant-time MAC check, no error oracle           |
 | **Key Management** | Rotation during validation, expired kid, unknown kid, cross-domain key isolation |
-| **Context** | Missing context, wrong context, context with different bindings |
-| **One-Shot** | Nonce cache overflow, CAS race condition, cache eviction timing |
+| **Context**        | Missing context, wrong context, context with different bindings                  |
+| **One-Shot**       | Nonce cache overflow, CAS race condition, cache eviction timing                  |
 
 ### 6.3 Benchmark Tests
 
-| Operation | Target |
-|-----------|--------|
-| Token generation | < 100µs |
-| Token validation | < 50µs |
-| HMAC-SHA256 sign/verify | < 30µs |
-| HKDF key derivation | < 50µs |
-| One-shot validation (with cache lookup) | < 80µs |
-| base64url encode/decode | < 5µs |
+| Operation                               | Target  |
+| --------------------------------------- | ------- |
+| Token generation                        | < 100µs |
+| Token validation                        | < 50µs  |
+| HMAC-SHA256 sign/verify                 | < 30µs  |
+| HKDF key derivation                     | < 50µs  |
+| One-shot validation (with cache lookup) | < 80µs  |
+| base64url encode/decode                 | < 5µs   |
 
 ### 6.4 Cross-Runtime Tests
 
-| Runtime | Version | Focus |
-|---------|---------|-------|
-| Node.js | 18, 20, 22 | Primary (CI matrix) |
-| Bun | Latest | WebCrypto compatibility |
-| Deno | Latest | WebCrypto compatibility |
+| Runtime | Version    | Focus                   |
+| ------- | ---------- | ----------------------- |
+| Node.js | 18, 20, 22 | Primary (CI matrix)     |
+| Bun     | Latest     | WebCrypto compatibility |
+| Deno    | Latest     | WebCrypto compatibility |
 
 ### 6.5 Integration Tests
 
@@ -1190,12 +1210,12 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ### 7.2 Usage Examples
 
-| Example | Description |
-|---------|-------------|
-| `examples/express-basic/` | Express + Sigil (minimal setup) |
-| `examples/hono-edge/` | Hono on Cloudflare Workers |
-| `examples/fastify-api/` | Fastify with API mode |
-| `examples/one-shot/` | High-assurance endpoint with one-shot token |
+| Example                   | Description                                 |
+| ------------------------- | ------------------------------------------- |
+| `examples/express-basic/` | Express + Sigil (minimal setup)             |
+| `examples/hono-edge/`     | Hono on Cloudflare Workers                  |
+| `examples/fastify-api/`   | Fastify with API mode                       |
+| `examples/one-shot/`      | High-assurance endpoint with one-shot token |
 
 ### 7.3 Release Setup
 
@@ -1247,18 +1267,18 @@ After:   Stateless Cryptographic Request Intent Verification Primitive
 
 All domains below are covered by the same core primitive — no new crypto or validation code is needed:
 
-| # | Security Domain | Mechanism |
-|---|---|---|
-| 1 | CSRF | Context-bound token + Origin + Fetch Metadata |
-| 2 | Replay / Idempotency | TTL + nonce + one-shot tokens |
-| 3 | Request Forgery | Context binding + MAC verification |
-| 4 | Request Provenance | Origin + Fetch Metadata + context binding |
-| 5 | Action-Level Security | One-shot + action binding + fail-closed |
-| 6 | Stateless Authenticity | HKDF key hierarchy + kid + keyring |
-| 7 | Intent Ambiguity | Context-bound verification + deterministic failure |
-| 8 | Incident Visibility | Deterministic validation + structured telemetry |
-| 9 | Key Compromise Resilience | HKDF hierarchy + kid + keyring rotation |
-| 10 | Client Diversity | Browser/API mode + canonical transport |
+| #   | Security Domain           | Mechanism                                          |
+| --- | ------------------------- | -------------------------------------------------- |
+| 1   | CSRF                      | Context-bound token + Origin + Fetch Metadata      |
+| 2   | Replay / Idempotency      | TTL + nonce + one-shot tokens                      |
+| 3   | Request Forgery           | Context binding + MAC verification                 |
+| 4   | Request Provenance        | Origin + Fetch Metadata + context binding          |
+| 5   | Action-Level Security     | One-shot + action binding + fail-closed            |
+| 6   | Stateless Authenticity    | HKDF key hierarchy + kid + keyring                 |
+| 7   | Intent Ambiguity          | Context-bound verification + deterministic failure |
+| 8   | Incident Visibility       | Deterministic validation + structured telemetry    |
+| 9   | Key Compromise Resilience | HKDF hierarchy + kid + keyring rotation            |
+| 10  | Client Diversity          | Browser/API mode + canonical transport             |
 
 ### MG-1: Coverage Validation (~1 week)
 
@@ -1280,16 +1300,19 @@ Integration test for each of the 10 security domains using the existing API:
 Document and provide example code for new usage patterns on existing adapters:
 
 **Webhook Integrity:**
+
 - Incoming webhook request integrity verification
 - Embed Sigil token in webhook payload + receiver-side validation
 - Example using `sigil-runtime` native fetch adapter
 
 **Internal API Authenticity:**
+
 - Service-to-service request intent verification
 - Shared master secret with HKDF key derivation
 - API Mode + context binding (service identity hash)
 
 **Idempotency Guard:**
+
 - Use one-shot token as idempotency key
 - Prevent double-processing on payment/transfer endpoints
 - Natural idempotency guarantee via nonce cache
@@ -1357,6 +1380,7 @@ Phase 8 (Model Generalization)
 **Critical Path:** Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 6 → Phase 7
 
 **Parallelizable:**
+
 - Phase 4 (Client) can start after Phase 3 begins (needs endpoint contract only)
 - Phase 5 (Ops) can start after Phase 3 begins (wraps middleware)
 - Phase 6 security tests can start as soon as Phase 1 is complete
@@ -1405,14 +1429,14 @@ gantt
 
 ## Risk Register
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| WebCrypto API differences across runtimes | Medium | High | Cross-runtime CI from Phase 0, test Node/Bun/Deno early |
-| Constant-time guarantees in JS runtime | Low | Critical | Use `crypto.subtle.verify` (inherently constant-time), benchmark timing variance |
-| Framework adapter API changes | Medium | Medium | Peer dependencies with version ranges, adapter tests per framework version |
-| Nonce cache race conditions | Low | High | Atomic CAS implementation, concurrent stress tests |
-| Token length oracle via base64url | Low | Medium | Constant-length tokens (89/120 bytes), length assertion tests |
-| Clock skew between client/server | Medium | Medium | Server timestamps for TTL, grace window, configurable tolerance |
+| Risk                                      | Likelihood | Impact   | Mitigation                                                                       |
+| ----------------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------- |
+| WebCrypto API differences across runtimes | Medium     | High     | Cross-runtime CI from Phase 0, test Node/Bun/Deno early                          |
+| Constant-time guarantees in JS runtime    | Low        | Critical | Use `crypto.subtle.verify` (inherently constant-time), benchmark timing variance |
+| Framework adapter API changes             | Medium     | Medium   | Peer dependencies with version ranges, adapter tests per framework version       |
+| Nonce cache race conditions               | Low        | High     | Atomic CAS implementation, concurrent stress tests                               |
+| Token length oracle via base64url         | Low        | Medium   | Constant-length tokens (89/120 bytes), length assertion tests                    |
+| Clock skew between client/server          | Medium     | Medium   | Server timestamps for TTL, grace window, configurable tolerance                  |
 
 ---
 
