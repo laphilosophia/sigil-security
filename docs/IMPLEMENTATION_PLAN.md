@@ -691,8 +691,9 @@ export { TOKEN_RAW_SIZE, ONESHOT_RAW_SIZE, NONCE_SIZE, ... } from './types'
 
 ---
 
-## Phase 2: @sigil-security/policy
+## Phase 2: @sigil-security/policy ✅
 
+**Status:** Complete
 **Duration:** 1-2 weeks
 **Goal:** Validation policies that interpret HTTP signals — depends only on `@sigil-security/core`.
 **Dependencies:** Phase 1 complete
@@ -844,20 +845,20 @@ Multiple tokens present → first match wins, log warning.
 
 ### Phase 2 Checklist
 
-- [ ] `src/types.ts` — `RequestMetadata`, `PolicyResult`, `PolicyValidator`, `TokenSource`
-- [ ] `src/fetch-metadata.ts` — Fetch Metadata policy (degraded + strict modes)
-- [ ] `src/origin.ts` — Origin/Referer policy
-- [ ] `src/method.ts` — HTTP method filtering
-- [ ] `src/content-type.ts` — Content-Type restriction
-- [ ] `src/mode-detection.ts` — Browser vs API mode
-- [ ] `src/context-binding.ts` — Risk tier model (low/medium/high)
-- [ ] `src/policy-chain.ts` — Policy composition (no short-circuit)
-- [ ] `src/token-transport.ts` — Token extraction precedence
-- [ ] `src/index.ts` — Public API
-- [ ] Tests for each policy (allow/reject scenarios)
-- [ ] Edge case tests (missing headers, service workers, extensions, subdomains)
-- [ ] No HTTP objects in policy layer (only `RequestMetadata`)
-- [ ] Depends only on `@sigil-security/core`
+- [x] `src/types.ts` — `RequestMetadata`, `PolicyResult`, `PolicyValidator`, `TokenSource`
+- [x] `src/fetch-metadata.ts` — Fetch Metadata policy (degraded + strict modes)
+- [x] `src/origin.ts` — Origin/Referer policy
+- [x] `src/method.ts` — HTTP method filtering
+- [x] `src/content-type.ts` — Content-Type restriction
+- [x] `src/mode-detection.ts` — Browser vs API mode
+- [x] `src/context-binding.ts` — Risk tier model (low/medium/high)
+- [x] `src/policy-chain.ts` — Policy composition (no short-circuit)
+- [x] `src/token-transport.ts` — Token extraction precedence
+- [x] `src/index.ts` — Public API
+- [x] Tests for each policy (allow/reject scenarios)
+- [x] Edge case tests (missing headers, service workers, extensions, subdomains)
+- [x] No HTTP objects in policy layer (only `RequestMetadata`)
+- [x] Depends only on `@sigil-security/core`
 
 ---
 
