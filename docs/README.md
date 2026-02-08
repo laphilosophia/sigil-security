@@ -1,8 +1,8 @@
 # Sigil-Security Documentation
 
-**Project:** Stateless CSRF Defense Library
-**Status:** Production-Ready
-**Total Documentation:** ~3000 lines (4 files)
+**Project:** Stateless Cryptographic Request Intent Verification Primitive
+**Status:** Production-Ready Specifications, Implementation In Progress
+**Total Documentation:** ~3500 lines (6 files)
 
 ---
 
@@ -86,7 +86,39 @@
 
 ---
 
-### 4. [`README.md`](./README.md) - This Document
+### 4. [`MODEL_GENERALIZATION.md`](./MODEL_GENERALIZATION.md) - Model Generalization
+
+**Scope:** Extended security model beyond CSRF
+
+**Contents:**
+
+- Security problem space naturally covered by the existing primitive
+- 10 security domains: CSRF, replay, forgery, provenance, action-level, stateless authenticity, intent ambiguity, incident visibility, key resilience, client diversity
+- Request validity formula: `Integrity ∧ Context ∧ Freshness ∧ Provenance`
+- Architectural scope guard (what Sigil must NOT evolve into)
+
+**Final Identity:** Stateless Cryptographic Request Intent Verification Primitive
+
+**Audience:** Architects, product stakeholders
+
+---
+
+### 5. [`CRYPTO_ANALYSIS.md`](./CRYPTO_ANALYSIS.md) - Cryptographic Backend Analysis
+
+**Scope:** WebCrypto evaluation and crypto architecture decisions
+
+**Contents:**
+
+- WebCrypto strengths (constant-time, cross-runtime, key isolation, RNG quality)
+- WebCrypto limitations (no streaming, no zeroization, no direct KMS/HSM)
+- Adopted improvements: key hierarchy with domain separation, constant-length tokens, CryptoProvider abstraction
+- WebCrypto vs Node crypto comparison
+
+**Audience:** Core contributors, security reviewers
+
+---
+
+### 6. [`README.md`](./README.md) - This Document
 
 **Scope:** Documentation index, quick start, project status
 
@@ -104,8 +136,9 @@
 ### For Core Contributors (Implementation)
 
 1. **READ FIRST:** [`BOUNDARY_SPECIFICATION.md`](./BOUNDARY_SPECIFICATION.md) - Core boundaries
-2. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I (Core Specification)
-3. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part II (Token Lifecycle)
+2. [`CRYPTO_ANALYSIS.md`](./CRYPTO_ANALYSIS.md) - Crypto decisions and CryptoProvider
+3. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I (Core Specification)
+4. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part II (Token Lifecycle)
 
 ### For Developers
 
@@ -121,7 +154,8 @@
 ### For Architects
 
 1. [`BOUNDARY_SPECIFICATION.md`](./BOUNDARY_SPECIFICATION.md) - Core identity
-2. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I (Core)
+2. [`MODEL_GENERALIZATION.md`](./MODEL_GENERALIZATION.md) - Extended security model
+3. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I (Core)
 
 ---
 
@@ -142,16 +176,19 @@
   - Monitoring and telemetry architecture
   - Incident response runbook
 
-### Next Phase
+### Current Phase
 
-**Implementation** (10-14 weeks)
+**Implementation In Progress** (10-14 weeks + Model Generalization)
 
-1. Core Library (2-3 weeks)
-2. Policy Engine (1-2 weeks)
-3. Adapters (2-3 weeks)
-4. Client SDK (1-2 weeks)
-5. Advanced Features (2-3 weeks)
-6. Documentation & Release (1 week)
+1. Project Infrastructure — Monorepo, CI/CD (1 week)
+2. Core Library — CryptoProvider, domain-separated keys, constant-length tokens (2-3 weeks)
+3. Policy Engine — Fetch Metadata, Origin, context binding, risk tiers (1-2 weeks)
+4. Framework Adapters — Express, Fastify, Hono, Oak, Elysia, native fetch (2-3 weeks)
+5. Browser SDK — Silent refresh, multi-tab sync, leader election (1-2 weeks)
+6. Telemetry — Pluggable metrics, anomaly detection, structured logging (1 week)
+7. Testing & Security — Unit, security, fuzzing, benchmarks (2 weeks)
+8. Documentation & Release (1 week)
+9. Model Generalization — Coverage validation, extended use cases, formal docs (2-3 weeks)
 
 ---
 
@@ -191,18 +228,18 @@
 ## Architectural Evolution
 
 **Previous:** CSRF middleware → Token validation → Feature
-**Current:** Request authenticity framework → Cryptographic proof of intent → Infrastructure component
+**Current:** Request intent verification → Cryptographic proof of intent → Infrastructure primitive
 
 ---
 
 ## Documentation Metrics
 
-- **Total Lines:** ~3000
-- **File Count:** 4 (hybrid approach)
-- **Coverage:** Specification + Operations + Boundaries
+- **Total Lines:** ~3500
+- **File Count:** 6
+- **Coverage:** Specification + Operations + Boundaries + Model Generalization + Crypto Analysis
 - **Status:** Production-ready
 
 ---
 
 **Last Updated:** 2026-02-08
-**Version:** 1.0
+**Version:** 1.1
