@@ -10,8 +10,11 @@ const ZERO_BYTE = new Uint8Array([0x00])
  *
  * Context is ALWAYS 32 bytes (SHA-256 output) — eliminates length oracle.
  *
- * - If bindings provided: `SHA-256(binding1 + binding2 + ...)`
+ * - If bindings provided: `SHA-256(len1 + binding1 + \0 + len2 + binding2 + \0 + ...)`
  * - If no bindings: `SHA-256(0x00)` — zero-padded, NEVER empty
+ *
+ * Uses length-prefixed encoding with null-byte separators to prevent
+ * concatenation collisions: `ctx("ab","cd") !== ctx("a","bcd") !== ctx("abcd")`.
  *
  * @param cryptoProvider - CryptoProvider for hashing
  * @param bindings - Strings to bind into context (e.g., sessionId, userId, origin)
@@ -26,8 +29,13 @@ export async function computeContext(
   }
 
   const encoder = new TextEncoder()
-  const concatenated = bindings.join('')
-  const data = encoder.encode(concatenated)
+  // Length-prefixed encoding prevents concatenation collisions:
+  // "ab"+"cd" → "2:ab\0 2:cd\0" vs "a"+"bcd" → "1:a\0 3:bcd\0"
+  const parts: string[] = []
+  for (const binding of bindings) {
+    parts.push(`${String(binding.length)}:${binding}\0`)
+  }
+  const data = encoder.encode(parts.join(''))
   const hash = await cryptoProvider.hash(data)
   return new Uint8Array(hash)
 }

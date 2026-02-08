@@ -224,6 +224,50 @@ describe('token', () => {
     })
   })
 
+  describe('kid edge cases', () => {
+    it('should handle kid=0 (falsy value)', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 0, 'csrf')
+      const key = getActiveKey(keyring)!
+      const now = Date.now()
+      const result = await generateToken(provider, key, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        const parsed = parseToken(result.token)
+        expect(parsed).not.toBeNull()
+        expect(parsed!.kid).toBe(0)
+      }
+    })
+
+    it('should handle kid=255 (max 8-bit value)', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 255, 'csrf')
+      const key = getActiveKey(keyring)!
+      const now = Date.now()
+      const result = await generateToken(provider, key, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        const parsed = parseToken(result.token)
+        expect(parsed).not.toBeNull()
+        expect(parsed!.kid).toBe(255)
+      }
+    })
+
+    it('should truncate kid > 255 to 8-bit', async () => {
+      // kid=256 → 0x100 & 0xFF = 0x00
+      const keyring = await createKeyring(provider, masterSecret, 256, 'csrf')
+      const key = getActiveKey(keyring)!
+      const result = await generateToken(provider, key)
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        const parsed = parseToken(result.token)
+        expect(parsed).not.toBeNull()
+        expect(parsed!.kid).toBe(0) // Truncated to 8-bit
+      }
+    })
+  })
+
   describe('token size assertions', () => {
     it('TOKEN_RAW_SIZE should be exactly 89', () => {
       expect(TOKEN_RAW_SIZE).toBe(89)

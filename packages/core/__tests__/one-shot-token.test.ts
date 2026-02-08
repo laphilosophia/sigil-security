@@ -337,6 +337,90 @@ describe('one-shot-token', () => {
     })
   })
 
+  describe('nonce protection', () => {
+    it('tampered token should NOT burn the nonce (legitimate token still works)', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'oneshot')
+      const key = getActiveKey(keyring)!
+      const nonceCache = createNonceCache()
+      const now = Date.now()
+      const result = await generateOneShotToken(provider, key, action, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // Submit tampered version first (flip last char)
+        const tampered = result.token.slice(0, -1) + (result.token.endsWith('A') ? 'B' : 'A')
+        const tamperedResult = await validateOneShotToken(
+          provider,
+          key,
+          tampered,
+          action,
+          nonceCache,
+          undefined,
+          undefined,
+          now,
+        )
+        expect(tamperedResult.valid).toBe(false)
+
+        // Now submit the REAL token — should still work (nonce not burned)
+        const validResult = await validateOneShotToken(
+          provider,
+          key,
+          result.token,
+          action,
+          nonceCache,
+          undefined,
+          undefined,
+          now,
+        )
+        expect(validResult).toEqual({ valid: true })
+      }
+    })
+
+    it('wrong action should NOT burn the nonce', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'oneshot')
+      const key = getActiveKey(keyring)!
+      const nonceCache = createNonceCache()
+      const now = Date.now()
+      const result = await generateOneShotToken(
+        provider,
+        key,
+        'POST:/api/delete',
+        undefined,
+        undefined,
+        now,
+      )
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // Submit with wrong action
+        const wrongAction = await validateOneShotToken(
+          provider,
+          key,
+          result.token,
+          'POST:/api/update', // Wrong action
+          nonceCache,
+          undefined,
+          undefined,
+          now,
+        )
+        expect(wrongAction.valid).toBe(false)
+
+        // Submit with correct action — should still work
+        const correctAction = await validateOneShotToken(
+          provider,
+          key,
+          result.token,
+          'POST:/api/delete',
+          nonceCache,
+          undefined,
+          undefined,
+          now,
+        )
+        expect(correctAction).toEqual({ valid: true })
+      }
+    })
+  })
+
   describe('domain separation', () => {
     it('csrf key cannot validate one-shot token', async () => {
       const oneshotKeyring = await createKeyring(provider, masterSecret, 1, 'oneshot')

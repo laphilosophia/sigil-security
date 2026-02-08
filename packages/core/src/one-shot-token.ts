@@ -229,11 +229,14 @@ export async function validateOneShotToken(
   if (!contextOk) reason = 'context_mismatch'
 
   // Step 6: Nonce replay check (atomic CAS)
-  // Must run AFTER MAC verification succeeds conceptually, but we accumulate all results
+  // Check nonce presence first (read-only), then only consume if all other checks passed.
+  // This prevents an attacker from "burning" a legitimate nonce by submitting a tampered token.
   let nonceOk = true
   if (parseOk) {
-    // markUsed returns true if nonce was successfully marked (not previously used)
-    nonceOk = nonceCache.markUsed(parsed.nonce)
+    const alreadyUsed = nonceCache.has(parsed.nonce)
+    if (alreadyUsed) {
+      nonceOk = false
+    }
   } else {
     nonceOk = false
   }
@@ -241,6 +244,16 @@ export async function validateOneShotToken(
   if (!nonceOk) reason = 'nonce_reused'
 
   // Single exit point — deterministic
+  // Only consume the nonce (mark as used) if ALL checks passed.
+  // This ensures tampered tokens cannot burn legitimate nonces.
+  if (valid && parseOk) {
+    const consumed = nonceCache.markUsed(parsed.nonce)
+    if (!consumed) {
+      // Race condition: nonce was consumed between has() and markUsed()
+      return { valid: false, reason: 'nonce_reused' }
+    }
+  }
+
   return valid ? { valid: true } : { valid: false, reason }
 }
 
