@@ -130,8 +130,9 @@ client → runtime → policy → core
 
 ---
 
-## Phase 0: Monorepo Infrastructure
+## Phase 0: Monorepo Infrastructure ✅
 
+**Status:** Complete
 **Duration:** ~1 week
 **Goal:** Production-ready monorepo skeleton with CI/CD, tooling, and package scaffolding.
 **Dependencies:** None (starting point)
@@ -288,22 +289,22 @@ packages/
 
 ### Phase 0 Checklist
 
-- [ ] Root `package.json` with workspace scripts
-- [ ] `pnpm-workspace.yaml`
-- [ ] `tsconfig.base.json` with strict settings
-- [ ] ESLint flat config
-- [ ] Prettier config
-- [ ] `.editorconfig`
-- [ ] Vitest workspace config
-- [ ] GitHub Actions CI (Node 18/20/22 matrix)
-- [ ] Cross-runtime CI workflow (Node, Bun, Deno)
-- [ ] Release workflow (changesets)
-- [ ] Package scaffolding (all 5 packages with empty `src/index.ts`)
-- [ ] `pnpm install` succeeds
-- [ ] `pnpm build` succeeds (empty packages)
-- [ ] `pnpm test` succeeds (no tests yet)
-- [ ] `pnpm lint` passes
-- [ ] `pnpm typecheck` passes
+- [x] Root `package.json` with workspace scripts
+- [x] `pnpm-workspace.yaml`
+- [x] `tsconfig.base.json` with strict settings
+- [x] ESLint flat config
+- [x] Prettier config
+- [x] `.editorconfig`
+- [x] Vitest workspace config
+- [x] GitHub Actions CI (Node 18/20/22 matrix)
+- [x] Cross-runtime CI workflow (Node, Bun, Deno)
+- [x] Release workflow (changesets)
+- [x] Package scaffolding (all 5 packages with empty `src/index.ts`)
+- [x] `pnpm install` succeeds
+- [x] `pnpm build` succeeds (empty packages)
+- [x] `pnpm test` succeeds (no tests yet)
+- [x] `pnpm lint` passes
+- [x] `pnpm typecheck` passes
 
 ---
 
