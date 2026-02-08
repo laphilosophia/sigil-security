@@ -16,6 +16,7 @@
     "version": "changeset version",
     "release": "pnpm build && changeset publish"
   },
+  "packageManager": "pnpm@9.1.4",
   "engines": {
     "node": ">=18"
   },
