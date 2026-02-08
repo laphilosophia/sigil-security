@@ -308,8 +308,9 @@ packages/
 
 ---
 
-## Phase 1: @sigil-security/core
+## Phase 1: @sigil-security/core ✅
 
+**Status:** Complete
 **Duration:** 2-3 weeks
 **Goal:** Complete cryptographic primitive — zero dependencies, pure, deterministic, constant-time.
 **Dependencies:** Phase 0 complete
@@ -660,30 +661,30 @@ export { TOKEN_RAW_SIZE, ONESHOT_RAW_SIZE, NONCE_SIZE, ... } from './types'
 
 ### Phase 1 Checklist
 
-- [ ] `src/encoding.ts` — base64url, buffer ops
-- [ ] `src/types.ts` — branded types, constants, result types
-- [ ] `src/crypto-provider.ts` — CryptoProvider interface
-- [ ] `src/web-crypto-provider.ts` — WebCrypto implementation
-- [ ] `src/key-derivation.ts` — HKDF with domain separation
-- [ ] `src/key-manager.ts` — Keyring (max 3 keys), rotation
-- [ ] `src/context.ts` — Context binding (always 32 bytes)
-- [ ] `src/token.ts` — Token generation, parsing, serialization (89 bytes fixed)
-- [ ] `src/validation.ts` — Deterministic failure model, constant-time validation
-- [ ] `src/one-shot-token.ts` — One-shot generation, parsing, validation (120 bytes fixed)
-- [ ] `src/nonce-cache.ts` — LRU + TTL cache (10k max, 5min TTL, atomic CAS)
-- [ ] `src/index.ts` — Public API surface
-- [ ] `__tests__/encoding.test.ts`
-- [ ] `__tests__/crypto-provider.test.ts`
-- [ ] `__tests__/key-manager.test.ts`
-- [ ] `__tests__/token.test.ts`
-- [ ] `__tests__/validation.test.ts`
-- [ ] `__tests__/one-shot-token.test.ts`
-- [ ] `__tests__/nonce-cache.test.ts`
-- [ ] Zero runtime dependencies verified
-- [ ] All exports have explicit return types
-- [ ] No `any` on exported APIs
-- [ ] Token size assertions (89 / 120 bytes)
-- [ ] Constant-time validation verified (no early returns)
+- [x] `src/encoding.ts` — base64url, buffer ops
+- [x] `src/types.ts` — branded types, constants, result types
+- [x] `src/crypto-provider.ts` — CryptoProvider interface
+- [x] `src/web-crypto-provider.ts` — WebCrypto implementation
+- [x] `src/key-derivation.ts` — HKDF with domain separation
+- [x] `src/key-manager.ts` — Keyring (max 3 keys), rotation
+- [x] `src/context.ts` — Context binding (always 32 bytes)
+- [x] `src/token.ts` — Token generation, parsing, serialization (89 bytes fixed)
+- [x] `src/validation.ts` — Deterministic failure model, constant-time validation
+- [x] `src/one-shot-token.ts` — One-shot generation, parsing, validation (120 bytes fixed)
+- [x] `src/nonce-cache.ts` — LRU + TTL cache (10k max, 5min TTL, atomic CAS)
+- [x] `src/index.ts` — Public API surface
+- [x] `__tests__/encoding.test.ts`
+- [x] `__tests__/crypto-provider.test.ts`
+- [x] `__tests__/key-manager.test.ts`
+- [x] `__tests__/token.test.ts`
+- [x] `__tests__/validation.test.ts`
+- [x] `__tests__/one-shot-token.test.ts`
+- [x] `__tests__/nonce-cache.test.ts`
+- [x] Zero runtime dependencies verified
+- [x] All exports have explicit return types
+- [x] No `any` on exported APIs
+- [x] Token size assertions (89 / 120 bytes)
+- [x] Constant-time validation verified (no early returns)
 - [ ] Cross-runtime test (Node 18+)
 
 **Performance Target:** Token validation < 50µs
