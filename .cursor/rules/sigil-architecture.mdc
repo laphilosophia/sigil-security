@@ -1,0 +1,70 @@
+---
+description: Sigil-Security project architecture, layer boundaries, and implementation plan adherence. Enforces the normative BOUNDARY_SPECIFICATION rules at all times.
+alwaysApply: true
+---
+
+# Sigil-Security Architecture Rules
+
+## Project Identity
+
+Sigil-Security is a **stateless cryptographic request authenticity primitive** -- NOT a CSRF middleware, NOT a framework, NOT an auth system. Every implementation decision must preserve this identity.
+
+## Monorepo Structure (pnpm workspaces)
+
+```
+packages/
+  core/       -> @sigil-security/core       (crypto primitive, stateless, pure)
+  policy/     -> @sigil-security/policy     (validation policies: Fetch Metadata, Origin, context binding)
+  runtime/    -> @sigil-security/runtime    (framework adapters: Express, Fastify, Hono, Oak, Elysia, native fetch)
+  ops/        -> @sigil-security/ops        (telemetry & monitoring, optional)
+  client/     -> @sigil-security/client     (browser SDK: refresh, multi-tab sync, leader election)
+```
+
+## Layer Boundary Rules (STRICTLY ENFORCED)
+
+### sigil-core MUST only:
+- Generate/validate tokens, compute/verify HMAC, derive keys via HKDF, perform constant-time comparisons
+- Remain deterministic, side-effect free (except ephemeral replay cache), I/O free, runtime agnostic, framework agnostic
+
+### sigil-core MUST NEVER:
+- Accept HTTP request/response objects
+- Import or depend on any framework (Express, Hono, Oak, etc.)
+- Perform I/O (network, filesystem, database)
+- Include logging, metrics, or telemetry
+- Manage token lifecycle (refresh, rotation scheduling, multi-tab sync)
+- Contain policy logic (Origin check, Fetch Metadata, method filtering)
+- Access environment variables or configuration stores
+- Maintain distributed or persistent state
+
+### Layer Dependency Direction (one-way only):
+```
+client -> runtime -> policy -> core
+                     ops ----> runtime
+```
+- Higher layers depend on lower layers, NEVER the reverse
+- `core` has ZERO dependencies on any other sigil package
+- `policy` depends only on `core`
+- `runtime` depends on `policy` and `core`
+- `ops` depends on `runtime` (wraps middleware with telemetry)
+- `client` is standalone browser code, communicates via HTTP with `runtime` endpoints
+
+## Implementation Reference
+
+Always consult these specification files before making architectural decisions:
+- `docs/BOUNDARY_SPECIFICATION.md` -- Core boundary rules (normative, MUST READ)
+- `docs/SPECIFICATION.md` -- Token model, validation layers, lifecycle, one-shot tokens
+- `docs/OPERATIONS.md` -- Telemetry metrics, anomaly detection, incident response
+- `docs/MODEL_GENERALIZATION.md` -- Extended security model: request intent verification beyond CSRF
+
+## Model Generalization Principle
+
+Sigil's identity evolves from "CSRF Defense Library" to **"Cryptographic Request Intent Verification Primitive"**. The same core primitive covers 10 security domains (CSRF, replay, forgery, provenance, action-level, stateless authenticity, intent ambiguity, incident visibility, key resilience, client diversity). Model Generalization does NOT expand the core -- it formalizes the natural application surface of the existing primitive. Valid Request := `Integrity AND Context AND Freshness AND Provenance`.
+
+## Violation Detection
+
+If any of these occur, STOP and refactor:
+- `core` package imports from `policy`, `runtime`, `ops`, or `client`
+- `core` references `Request`, `Response`, `req`, `res`, `ctx` (HTTP objects)
+- `core` contains `console.log`, `logger.*`, `metrics.*`
+- `core` uses `fetch()`, `fs.*`, `process.env`, or any I/O
+- Any framework-specific type appears in `core` or `policy`

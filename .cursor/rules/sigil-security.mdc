@@ -1,0 +1,86 @@
+---
+description: Sigil-Security cryptographic and security implementation constraints. Enforces constant-time operations, side-channel protection, and secure token handling.
+alwaysApply: true
+---
+
+# Security & Cryptography Rules
+
+## Crypto Stack (FIXED -- no alternatives unless via CryptoProvider)
+
+- **Key Derivation:** HKDF-SHA256 (RFC 5869) via `crypto.subtle.deriveKey` / `crypto.subtle.deriveBits`
+- **MAC:** HMAC-SHA256 (RFC 2104) via `crypto.subtle.sign` / `crypto.subtle.verify` -- FULL 256-bit, NO truncation
+- **Nonce:** 128-bit via `crypto.getRandomValues(new Uint8Array(16))`
+- **Encoding:** base64url (RFC 4648), NO padding
+- **Default API:** WebCrypto. ZERO external crypto dependencies. No `crypto` node module for HMAC/HKDF.
+
+## CryptoProvider Abstraction
+
+All crypto ops go through the `CryptoProvider` interface -- never call `crypto.subtle` directly from token/validation code:
+
+```typescript
+interface CryptoProvider {
+  sign(key: CryptoKey, data: Uint8Array): Promise<ArrayBuffer>
+  verify(key: CryptoKey, signature: ArrayBuffer, data: Uint8Array): Promise<boolean>
+  deriveKey(master: ArrayBuffer, salt: string, info: string): Promise<CryptoKey>
+  randomBytes(length: number): Uint8Array
+  hash(data: Uint8Array): Promise<ArrayBuffer>
+}
+```
+
+- Default implementation: `WebCryptoCryptoProvider` (ships with core, zero deps)
+- Extension point for KMS/HSM/Node native -- documented, not built until needed
+- Core functions depend on `CryptoProvider`, not concrete `crypto.subtle`
+
+## Constant-Time Requirements
+
+```typescript
+// NEVER do this -- timing oracle
+if (computedMac === providedMac) { ... }
+if (token.length !== EXPECTED_LENGTH) return false; // early reject
+
+// ALWAYS do this
+const isValid = crypto.subtle.verify('HMAC', key, signature, data);
+// or use timingSafeEqual for raw buffer comparison
+```
+
+- ALL validation steps MUST complete -- no early return on failure
+- Use the **Deterministic Failure Model**: accumulate `valid &= stepResult`, single exit point
+- `crypto.subtle.verify` is inherently constant-time -- prefer it over manual comparison
+
+## Token Rules (Constant-Length -- NO variable-size fields)
+
+- Token structure: `base64url(kid[1] | nonce[16] | ts[8] | ctx[32] | mac[32])` = **89 bytes FIXED**
+- One-shot token: `base64url(nonce[16] | ts[8] | action[32] | ctx[32] | mac[32])` = **120 bytes FIXED**
+- `ctx` is ALWAYS 32 bytes -- if no context binding, use `SHA-256(0x00)` as zero-pad (not empty)
+- Token length NEVER varies -- parse uses fixed offsets, eliminates length oracle
+- NEVER log token content (nonce, mac). Only log metadata (kid, timestamp, action label)
+- NEVER transport tokens in URL query parameters
+- NEVER differentiate error types to the client -- single message: `"CSRF validation failed"`
+- Error details go to internal logs ONLY (reason field), never in HTTP response body
+
+## Key Management (Domain-Separated Hierarchy)
+
+- Keyring: max 3 keys (active + 2 previous) **per domain**
+- Token generation: ALWAYS use active key
+- Token validation: try ALL keys in keyring (match by kid)
+- **Domain separation** -- different token types derive keys from different HKDF paths:
+  - CSRF: `HKDF(master, salt="sigil-v1", info="csrf-signing-key-"+kid)`
+  - One-shot: `HKDF(master, salt="sigil-v1", info="oneshot-signing-key-"+kid)`
+  - Internal: `HKDF(master, salt="sigil-v1", info="internal-signing-key-"+kid)`
+- Cross-protocol attack surface is closed: a CSRF-derived key cannot validate a one-shot token
+
+## One-Shot Token Nonce Cache
+
+- In-memory LRU + TTL (max 10k entries, 5min TTL)
+- Atomic compare-and-swap for `used` flag -- prevent race conditions
+- Cache is optimization, NOT security guarantee -- must fail-open if cache is unavailable
+- NO external storage (Redis, DB) in core -- that belongs in `sigil-extended`
+
+## Forbidden Patterns
+
+- `Math.random()` for any security purpose -- use `crypto.getRandomValues`
+- String comparison (`===`, `!==`) for MAC or token comparison
+- `JSON.stringify` for token serialization -- use binary `Uint8Array` operations
+- `eval()`, `new Function()`, dynamic code execution
+- Storing secrets in source code, comments, or test fixtures
+- `any` type on security-critical function signatures
