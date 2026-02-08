@@ -66,6 +66,15 @@ describe('createContentTypePolicy', () => {
       )
       expect(result.allowed).toBe(true)
     })
+
+    it('should handle content-type with only semicolon prefix', () => {
+      const policy = createContentTypePolicy()
+      const result = policy.validate(
+        makeMetadata({ contentType: ';charset=utf-8' }),
+      )
+      // Empty MIME type after stripping → not in allowed list → reject
+      expect(result.allowed).toBe(false)
+    })
   })
 
   describe('case insensitivity', () => {

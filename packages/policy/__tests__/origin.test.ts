@@ -178,6 +178,50 @@ describe('createOriginPolicy', () => {
       const result = policy.validate(makeMetadata({ origin: 'https://example.com' }))
       expect(result.allowed).toBe(false)
     })
+
+    it('should reject literal "null" origin (privacy-sandboxed iframe)', () => {
+      // Browsers send Origin: null (literal string) for sandboxed iframes,
+      // data: URIs, and privacy redirects. This must be rejected.
+      const policy = createOriginPolicy({ allowedOrigins })
+      const result = policy.validate(makeMetadata({ origin: 'null' }))
+      expect(result.allowed).toBe(false)
+    })
+
+    it('should handle malformed origin string gracefully', () => {
+      // Non-URL origin strings fall through to lowercase + strip trailing slash
+      const policy = createOriginPolicy({ allowedOrigins: ['custom-scheme'] })
+      const result = policy.validate(makeMetadata({ origin: 'custom-scheme' }))
+      expect(result.allowed).toBe(true)
+    })
+
+    it('should handle allowed origin configured as non-URL', () => {
+      // If allowedOrigins contains non-URL strings, normalizeOrigin falls back
+      const policy = createOriginPolicy({ allowedOrigins: ['not-a-url'] })
+      const result = policy.validate(makeMetadata({ origin: 'not-a-url' }))
+      expect(result.allowed).toBe(true)
+    })
+
+    it('should handle Referer with fragment', () => {
+      const policy = createOriginPolicy({ allowedOrigins })
+      const result = policy.validate(
+        makeMetadata({
+          origin: null,
+          referer: 'https://example.com/page#section',
+        }),
+      )
+      expect(result.allowed).toBe(true)
+    })
+
+    it('should handle Referer with credentials (user:pass@host)', () => {
+      const policy = createOriginPolicy({ allowedOrigins })
+      const result = policy.validate(
+        makeMetadata({
+          origin: null,
+          referer: 'https://user:pass@example.com/page',
+        }),
+      )
+      expect(result.allowed).toBe(true)
+    })
   })
 
   describe('policy name', () => {

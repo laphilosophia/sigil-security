@@ -85,17 +85,10 @@ export function createFetchMetadataPolicy(config?: FetchMetadataConfig): PolicyV
 
       // none → reject (browser extension or untrusted origin)
       // Per SPECIFICATION.md §8.4: Browser extension initiated requests are rejected
-      if (normalized === 'none') {
-        return {
-          allowed: false,
-          reason: 'fetch_metadata_none',
-        }
-      }
-
-      // Should be unreachable due to set check above, but satisfy exhaustive check
+      // This is the last valid value in VALID_FETCH_SITE_VALUES, so no else needed
       return {
         allowed: false,
-        reason: `fetch_metadata_unknown:${normalized}`,
+        reason: 'fetch_metadata_none',
       }
     },
   }

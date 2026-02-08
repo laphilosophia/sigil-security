@@ -104,6 +104,13 @@ describe('evaluateContextBinding', () => {
       expect(result.enforced).toBe(false)
       expect(result.inGracePeriod).toBe(true)
     })
+
+    it('should enforce when session age is negative (clock skew)', () => {
+      const result = evaluateContextBinding(false, { tier: 'medium' }, -1000)
+      expect(result.matches).toBe(false)
+      expect(result.enforced).toBe(true)
+      expect(result.inGracePeriod).toBe(false)
+    })
   })
 
   describe('high tier — fail-closed', () => {
