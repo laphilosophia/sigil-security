@@ -22,16 +22,20 @@ function extractOriginFromReferer(referer: string): string | null {
 /**
  * Normalizes an origin string by removing trailing slashes and lowering the scheme/host.
  *
+ * **Security (L5 fix):** Returns `null` on URL parse failure instead of a
+ * fallback string comparison. A malformed origin can never match any entry
+ * in `allowedOrigins`, eliminating unintentional string-level matches.
+ *
  * @param origin - Origin string (e.g., "https://Example.COM/")
- * @returns Normalized origin (e.g., "https://example.com")
+ * @returns Normalized origin (e.g., "https://example.com"), or null if invalid
  */
-function normalizeOrigin(origin: string): string {
+function normalizeOrigin(origin: string): string | null {
   try {
     const url = new URL(origin)
     return url.origin
   } catch {
-    // If not a valid URL, lowercase and strip trailing slash
-    return origin.toLowerCase().replace(/\/+$/, '')
+    // Invalid origin — return null so it never matches any allowed origin
+    return null
   }
 }
 
@@ -47,8 +51,14 @@ function normalizeOrigin(origin: string): string {
  * @returns PolicyValidator for Origin/Referer
  */
 export function createOriginPolicy(config: OriginConfig): PolicyValidator {
-  // Pre-normalize allowed origins for consistent comparison
-  const normalizedAllowed = new Set(config.allowedOrigins.map(normalizeOrigin))
+  // Pre-normalize allowed origins — filter out invalid entries (null from parse failure)
+  const normalizedAllowed = new Set<string>()
+  for (const o of config.allowedOrigins) {
+    const normalized = normalizeOrigin(o)
+    if (normalized !== null) {
+      normalizedAllowed.add(normalized)
+    }
+  }
 
   return {
     name: 'origin',
@@ -60,13 +70,14 @@ export function createOriginPolicy(config: OriginConfig): PolicyValidator {
       if (origin !== null && origin !== '') {
         const normalizedOrigin = normalizeOrigin(origin)
 
-        if (normalizedAllowed.has(normalizedOrigin)) {
+        // null = malformed origin → automatic mismatch (L5 fix)
+        if (normalizedOrigin !== null && normalizedAllowed.has(normalizedOrigin)) {
           return { allowed: true }
         }
 
         return {
           allowed: false,
-          reason: `origin_mismatch:${normalizedOrigin}`,
+          reason: `origin_mismatch:${normalizedOrigin ?? origin}`,
         }
       }
 
@@ -83,13 +94,14 @@ export function createOriginPolicy(config: OriginConfig): PolicyValidator {
 
         const normalizedRefererOrigin = normalizeOrigin(refererOrigin)
 
-        if (normalizedAllowed.has(normalizedRefererOrigin)) {
+        // null = malformed → automatic mismatch
+        if (normalizedRefererOrigin !== null && normalizedAllowed.has(normalizedRefererOrigin)) {
           return { allowed: true }
         }
 
         return {
           allowed: false,
-          reason: `origin_referer_mismatch:${normalizedRefererOrigin}`,
+          reason: `origin_referer_mismatch:${normalizedRefererOrigin ?? refererOrigin}`,
         }
       }
 

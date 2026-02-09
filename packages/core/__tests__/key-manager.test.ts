@@ -113,6 +113,56 @@ describe('key-manager', () => {
     })
   })
 
+  describe('kid range validation (L4 fix)', () => {
+    it('should accept kid=0 (minimum)', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 0, 'csrf')
+      expect(keyring.keys[0]!.kid).toBe(0)
+    })
+
+    it('should accept kid=255 (maximum)', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 255, 'csrf')
+      expect(keyring.keys[0]!.kid).toBe(255)
+    })
+
+    it('should reject kid=256 (overflow)', async () => {
+      await expect(
+        createKeyring(provider, masterSecret, 256, 'csrf'),
+      ).rejects.toThrow(RangeError)
+    })
+
+    it('should reject kid=-1 (underflow)', async () => {
+      await expect(
+        createKeyring(provider, masterSecret, -1, 'csrf'),
+      ).rejects.toThrow(RangeError)
+    })
+
+    it('should reject non-integer kid', async () => {
+      await expect(
+        createKeyring(provider, masterSecret, 1.5, 'csrf'),
+      ).rejects.toThrow(RangeError)
+    })
+
+    it('should reject NaN kid', async () => {
+      await expect(
+        createKeyring(provider, masterSecret, NaN, 'csrf'),
+      ).rejects.toThrow(RangeError)
+    })
+
+    it('should reject kid overflow in rotateKey', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      await expect(
+        rotateKey(keyring, provider, masterSecret, 256),
+      ).rejects.toThrow(RangeError)
+    })
+
+    it('should reject negative kid in rotateKey', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      await expect(
+        rotateKey(keyring, provider, masterSecret, -1),
+      ).rejects.toThrow(RangeError)
+    })
+  })
+
   describe('cross-domain key isolation', () => {
     it('should not validate across domains', async () => {
       const csrfKeyring = await createKeyring(provider, masterSecret, 1, 'csrf')

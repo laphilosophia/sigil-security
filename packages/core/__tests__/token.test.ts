@@ -253,18 +253,11 @@ describe('token', () => {
       }
     })
 
-    it('should truncate kid > 255 to 8-bit', async () => {
-      // kid=256 → 0x100 & 0xFF = 0x00
-      const keyring = await createKeyring(provider, masterSecret, 256, 'csrf')
-      const key = getActiveKey(keyring)!
-      const result = await generateToken(provider, key)
-
-      expect(result.success).toBe(true)
-      if (result.success) {
-        const parsed = parseToken(result.token)
-        expect(parsed).not.toBeNull()
-        expect(parsed!.kid).toBe(0) // Truncated to 8-bit
-      }
+    it('should reject kid > 255 at keyring creation (L4 fix)', async () => {
+      // kid=256 is out of 8-bit range — createKeyring now validates
+      await expect(
+        createKeyring(provider, masterSecret, 256, 'csrf'),
+      ).rejects.toThrow(RangeError)
     })
   })
 

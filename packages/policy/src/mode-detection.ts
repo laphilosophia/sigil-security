@@ -4,11 +4,30 @@
 import type { ClientMode, RequestMetadata } from './types.js'
 
 /**
+ * Configuration for client mode detection.
+ */
+export interface ModeDetectionConfig {
+  /**
+   * When true, the `X-Client-Type: api` header override is disabled.
+   * Clients cannot self-declare as API mode to bypass Fetch Metadata and
+   * Origin validation. Mode is determined solely by `Sec-Fetch-Site` presence.
+   *
+   * **Security (M3 fix):** A server with permissive CORS configuration
+   * (`Access-Control-Allow-Headers: *`) would allow cross-origin attackers
+   * to set `X-Client-Type: api` and bypass browser-specific policies.
+   * Set this to `true` if CORS cannot be tightly controlled.
+   *
+   * Default: `false` (override allowed for backward compatibility)
+   */
+  readonly disableClientModeOverride?: boolean | undefined
+}
+
+/**
  * Detects client mode (browser vs API) from request metadata.
  *
  * Mode detection logic (per SPECIFICATION.md §8.2):
  *
- * 1. Manual override: `X-Client-Type: api` → Force API Mode
+ * 1. Manual override: `X-Client-Type: api` → Force API Mode (unless disabled)
  * 2. `Sec-Fetch-Site` header present → Browser Mode
  *    (modern browsers always send Fetch Metadata headers)
  * 3. `Sec-Fetch-Site` header absent → API Mode
@@ -24,11 +43,19 @@ import type { ClientMode, RequestMetadata } from './types.js'
  * - Fetch Metadata and Origin policies are relaxed
  *
  * @param metadata - Normalized request metadata
+ * @param config - Optional mode detection configuration
  * @returns 'browser' or 'api'
  */
-export function detectClientMode(metadata: RequestMetadata): ClientMode {
-  // Manual override via X-Client-Type header
-  if (metadata.clientType !== undefined && metadata.clientType.toLowerCase() === 'api') {
+export function detectClientMode(
+  metadata: RequestMetadata,
+  config?: ModeDetectionConfig,
+): ClientMode {
+  // Manual override via X-Client-Type header (unless disabled)
+  if (
+    config?.disableClientModeOverride !== true &&
+    metadata.clientType !== undefined &&
+    metadata.clientType.toLowerCase() === 'api'
+  ) {
     return 'api'
   }
 

@@ -133,7 +133,6 @@ client → runtime → policy → core
 ## Phase 0: Monorepo Infrastructure ✅
 
 **Status:** Complete
-**Duration:** ~1 week
 **Goal:** Production-ready monorepo skeleton with CI/CD, tooling, and package scaffolding.
 **Dependencies:** None (starting point)
 
@@ -311,7 +310,6 @@ packages/
 ## Phase 1: @sigil-security/core ✅
 
 **Status:** Complete
-**Duration:** 2-3 weeks
 **Goal:** Complete cryptographic primitive — zero dependencies, pure, deterministic, constant-time.
 **Dependencies:** Phase 0 complete
 **Reference:** `BOUNDARY_SPECIFICATION.md`, `SPECIFICATION.md` Part I, `CRYPTO_ANALYSIS.md`
@@ -694,7 +692,6 @@ export { TOKEN_RAW_SIZE, ONESHOT_RAW_SIZE, NONCE_SIZE, ... } from './types'
 ## Phase 2: @sigil-security/policy ✅
 
 **Status:** Complete
-**Duration:** 1-2 weeks
 **Goal:** Validation policies that interpret HTTP signals — depends only on `@sigil-security/core`.
 **Dependencies:** Phase 1 complete
 **Reference:** `SPECIFICATION.md` Sections 5, 6, 8
@@ -862,9 +859,9 @@ Multiple tokens present → first match wins, log warning.
 
 ---
 
-## Phase 3: @sigil-security/runtime
+## Phase 3: @sigil-security/runtime ✅
 
-**Duration:** 2-3 weeks
+**Status:** Complete
 **Goal:** Framework adapters that bridge HTTP objects to the policy layer.
 **Dependencies:** Phase 1 + Phase 2 complete
 **Reference:** `SPECIFICATION.md` Sections 3, 8
@@ -953,27 +950,26 @@ Returns: `{ token, expiresAt }` (regular) or `{ token, expiresAt, action }` (one
 
 ### Phase 3 Checklist
 
-- [ ] `src/types.ts` — `SigilConfig`, adapter types
-- [ ] `src/extract-metadata.ts` — Metadata extraction contract
-- [ ] `src/sigil.ts` — Core Sigil instance (keyring, config, validation orchestration)
-- [ ] `src/token-endpoint.ts` — Token generation/refresh endpoint handler
-- [ ] `src/error-response.ts` — Uniform error responses
-- [ ] `src/adapters/express.ts`
-- [ ] `src/adapters/fastify.ts`
-- [ ] `src/adapters/hono.ts`
-- [ ] `src/adapters/oak.ts`
-- [ ] `src/adapters/elysia.ts`
-- [ ] `src/adapters/fetch.ts`
-- [ ] Integration tests (per adapter, with mock server)
-- [ ] Token generation endpoint tests
-- [ ] Error response uniformity tests
-- [ ] Framework packages as peer dependencies
+- [x] `src/types.ts` — `SigilConfig`, `SigilInstance`, `ResolvedSigilConfig`, adapter types
+- [x] `src/extract-metadata.ts` — Metadata extraction contract (`HeaderGetter`, `resolveTokenSource`)
+- [x] `src/sigil.ts` — Core Sigil instance (keyring, config, validation orchestration, `createSigil`)
+- [x] `src/token-endpoint.ts` — Token generation/refresh endpoint handler (`handleTokenEndpoint`)
+- [x] `src/error-response.ts` — Uniform error responses (`createErrorResponse`)
+- [x] `src/adapters/express.ts` — Express `RequestHandler` middleware
+- [x] `src/adapters/fastify.ts` — Fastify plugin (`onRequest` hook + routes)
+- [x] `src/adapters/hono.ts` — Hono `MiddlewareHandler`
+- [x] `src/adapters/oak.ts` — Oak middleware (Deno)
+- [x] `src/adapters/elysia.ts` — Elysia plugin (Bun)
+- [x] `src/adapters/fetch.ts` — Native Fetch adapter (Edge runtime)
+- [x] Integration tests (Express mock, Fetch API adapter)
+- [x] Token generation endpoint tests
+- [x] Error response uniformity tests
+- [x] Framework packages as optional peer dependencies
 
 ---
 
 ## Phase 4: @sigil-security/client
 
-**Duration:** 1-2 weeks
 **Goal:** Browser SDK for token lifecycle management.
 **Dependencies:** Phase 3 complete (needs endpoint contract)
 **Reference:** `SPECIFICATION.md` Part II (Token Lifecycle)
@@ -1062,7 +1058,6 @@ async function requestOneShotToken(action: string): Promise<string> {
 
 ## Phase 5: @sigil-security/ops
 
-**Duration:** ~1 week
 **Goal:** Optional telemetry and monitoring layer.
 **Dependencies:** Phase 3 complete
 **Reference:** `OPERATIONS.md` Part I
@@ -1088,7 +1083,6 @@ From `OPERATIONS.md` Section 2 — all metric names pre-defined:
 
 **Security:** `csrf.validation.fail.total`, `.by_reason`, `csrf.origin.mismatch.*`, `csrf.fetch_metadata.*`
 **Crypto:** `csrf.key.rotation.events`, `.failures`, `csrf.keyring.size`, `csrf.crypto.failures`
-**Performance:** `csrf.validation.duration`, `csrf.token.generation.duration`
 **One-Shot:** `csrf.one_shot.replay_attempt.total`, `csrf.nonce_cache.size`, `.evictions`
 **Anomaly:** `csrf.anomaly.duplicate_token`, `.timing_variance`, `.validation_spike`
 
@@ -1131,7 +1125,6 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ## Phase 6: Testing & Security Hardening
 
-**Duration:** ~2 weeks
 **Goal:** Comprehensive test suite, security verification, and performance benchmarks.
 **Dependencies:** All implementation phases complete
 
@@ -1202,7 +1195,6 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ## Phase 7: Documentation & Release
 
-**Duration:** ~1 week
 **Goal:** API docs, examples, and npm publish readiness.
 **Dependencies:** Phase 6 complete
 
@@ -1250,7 +1242,6 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ## Phase 8: Model Generalization
 
-**Duration:** 2-3 weeks
 **Goal:** Validate and document the extended security model beyond CSRF.
 **Dependencies:** Phase 7 complete
 **Reference:** `MODEL_GENERALIZATION.md`

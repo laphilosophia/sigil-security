@@ -7,7 +7,7 @@ import type {
   PolicyValidator,
   RequestMetadata,
 } from './types.js'
-import { DEFAULT_ALLOWED_CONTENT_TYPES } from './types.js'
+import { DEFAULT_ALLOWED_CONTENT_TYPES, DEFAULT_PROTECTED_METHODS } from './types.js'
 
 /**
  * Extracts the MIME type from a Content-Type header value,
@@ -33,7 +33,10 @@ function extractMimeType(contentType: string): string {
  * - `application/x-www-form-urlencoded` (default)
  * - `multipart/form-data` (default)
  *
- * Requests without a Content-Type header are allowed (e.g., GET requests).
+ * **Security (L6 fix):** State-changing methods (POST, PUT, PATCH, DELETE)
+ * WITHOUT a Content-Type header are now rejected. Safe methods (GET, HEAD,
+ * OPTIONS) without Content-Type are still allowed (no body expected).
+ *
  * Content-Type parameters (charset, boundary) are stripped before comparison.
  *
  * Per SPECIFICATION.md §8.3: Content-Type mismatch (e.g., claiming JSON but
@@ -46,15 +49,24 @@ export function createContentTypePolicy(config?: ContentTypeConfig): PolicyValid
   const allowedTypes = new Set(
     (config?.allowedContentTypes ?? DEFAULT_ALLOWED_CONTENT_TYPES).map((t) => t.toLowerCase()),
   )
+  const stateChangingMethods = new Set(DEFAULT_PROTECTED_METHODS)
 
   return {
     name: 'content-type',
 
     validate(metadata: RequestMetadata): PolicyResult {
-      const { contentType } = metadata
+      const { contentType, method } = metadata
 
-      // No Content-Type header → allow (could be GET/HEAD with no body)
+      // No Content-Type header
       if (contentType === null || contentType === '') {
+        // State-changing methods MUST have a Content-Type (L6 fix)
+        if (stateChangingMethods.has(method.toUpperCase())) {
+          return {
+            allowed: false,
+            reason: 'content_type_missing_on_state_change',
+          }
+        }
+        // Safe methods (GET, HEAD, OPTIONS) — allow without Content-Type
         return { allowed: true }
       }
 

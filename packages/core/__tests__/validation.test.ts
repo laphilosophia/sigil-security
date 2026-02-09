@@ -149,6 +149,35 @@ describe('validation', () => {
       }
     })
 
+    it('should complete HMAC verify even with unknown kid (M1 timing oracle fix)', async () => {
+      // Create a keyring with kid=1 and a token with kid=99
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const otherKeyring = await createKeyring(provider, masterSecret, 99, 'csrf')
+      const key = getActiveKey(otherKeyring)!
+      const now = Date.now()
+      const result = await generateToken(provider, key, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // This should NOT throw — the fallback key from keyring.keys[0] should be used
+        const validation = await validateToken(
+          provider,
+          keyring,
+          result.token,
+          undefined,
+          undefined,
+          undefined,
+          now,
+        )
+        // Must reject, but must not crash (HMAC was executed with fallback key)
+        expect(validation.valid).toBe(false)
+        if (!validation.valid) {
+          // Reason should indicate kid was unknown (not a crash)
+          expect(validation.reason).toBe('invalid_mac')
+        }
+      }
+    })
+
     it('should reject token with unknown kid', async () => {
       const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
       const otherKeyring = await createKeyring(provider, masterSecret, 99, 'csrf')

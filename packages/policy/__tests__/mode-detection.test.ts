@@ -82,6 +82,51 @@ describe('detectClientMode', () => {
     })
   })
 
+  describe('disableClientModeOverride (M3 fix)', () => {
+    it('should ignore X-Client-Type: api when override is disabled', () => {
+      const mode = detectClientMode(
+        makeMetadata({ secFetchSite: 'same-origin', clientType: 'api' }),
+        { disableClientModeOverride: true },
+      )
+      // Should remain browser mode because Sec-Fetch-Site is present
+      expect(mode).toBe('browser')
+    })
+
+    it('should still detect API mode via Sec-Fetch-Site absence when override disabled', () => {
+      const mode = detectClientMode(
+        makeMetadata({ secFetchSite: null, clientType: 'api' }),
+        { disableClientModeOverride: true },
+      )
+      // API mode via absence of Sec-Fetch-Site, NOT via header override
+      expect(mode).toBe('api')
+    })
+
+    it('should allow X-Client-Type: api when override is NOT disabled', () => {
+      const mode = detectClientMode(
+        makeMetadata({ secFetchSite: 'same-origin', clientType: 'api' }),
+        { disableClientModeOverride: false },
+      )
+      expect(mode).toBe('api')
+    })
+
+    it('should allow X-Client-Type: api when config is undefined', () => {
+      const mode = detectClientMode(
+        makeMetadata({ secFetchSite: 'same-origin', clientType: 'api' }),
+      )
+      expect(mode).toBe('api')
+    })
+
+    it('should prevent cross-origin mode downgrade attack when override disabled', () => {
+      // Simulates: attacker sets X-Client-Type: api on a cross-site request
+      // With override disabled, the browser mode policies (Fetch Metadata) still apply
+      const mode = detectClientMode(
+        makeMetadata({ secFetchSite: 'cross-site', clientType: 'api' }),
+        { disableClientModeOverride: true },
+      )
+      expect(mode).toBe('browser') // NOT 'api' — policies not bypassed
+    })
+  })
+
   describe('real-world scenarios', () => {
     it('should detect browser for modern browser request', () => {
       const mode = detectClientMode(

@@ -88,13 +88,18 @@ export async function validateToken(
   const macPayload = parseOk ? assemblePayload(parsed) : DUMMY_PAYLOAD
   const macSignature = parseOk ? toArrayBuffer(parsed.mac) : DUMMY_MAC
 
+  // Always perform HMAC verify — even when key resolution failed.
+  // Using a fallback key from the keyring ensures identical timing profile
+  // regardless of whether kid matched. Without this, an attacker could
+  // enumerate active kid values by timing the response (~30µs difference).
+  const verifyKey = keyOk ? key.cryptoKey : keyring.keys[0]?.cryptoKey
   let macOk: boolean
-  if (keyOk) {
-    macOk = await cryptoProvider.verify(key.cryptoKey, macSignature, macPayload)
+  if (verifyKey !== undefined) {
+    const actualResult = await cryptoProvider.verify(verifyKey, macSignature, macPayload)
+    // Only trust the result if we used the correct (kid-matched) key
+    macOk = keyOk ? actualResult : false
   } else {
-    // No valid key — HMAC verification cannot proceed
-    // Timing difference is minimal (array lookup vs HMAC)
-    // An attacker cannot control kid to be unknown while having a valid MAC
+    // Keyring is empty (should never happen by construction) — fail closed
     macOk = false
   }
   valid &&= macOk

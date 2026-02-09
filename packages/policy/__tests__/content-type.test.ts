@@ -124,15 +124,48 @@ describe('createContentTypePolicy', () => {
   })
 
   describe('absent content type', () => {
-    it('should allow null content type (e.g., GET request)', () => {
+    it('should allow null content type on safe methods (GET)', () => {
       const policy = createContentTypePolicy()
-      const result = policy.validate(makeMetadata({ contentType: null }))
+      const result = policy.validate(makeMetadata({ method: 'GET', contentType: null }))
       expect(result.allowed).toBe(true)
     })
 
-    it('should allow empty string content type', () => {
+    it('should allow empty content type on safe methods (HEAD)', () => {
       const policy = createContentTypePolicy()
-      const result = policy.validate(makeMetadata({ contentType: '' }))
+      const result = policy.validate(makeMetadata({ method: 'HEAD', contentType: '' }))
+      expect(result.allowed).toBe(true)
+    })
+
+    it('should reject null content type on POST (L6 fix)', () => {
+      const policy = createContentTypePolicy()
+      const result = policy.validate(makeMetadata({ method: 'POST', contentType: null }))
+      expect(result.allowed).toBe(false)
+      if (!result.allowed) {
+        expect(result.reason).toBe('content_type_missing_on_state_change')
+      }
+    })
+
+    it('should reject empty content type on PUT (L6 fix)', () => {
+      const policy = createContentTypePolicy()
+      const result = policy.validate(makeMetadata({ method: 'PUT', contentType: '' }))
+      expect(result.allowed).toBe(false)
+    })
+
+    it('should reject missing content type on PATCH (L6 fix)', () => {
+      const policy = createContentTypePolicy()
+      const result = policy.validate(makeMetadata({ method: 'PATCH', contentType: null }))
+      expect(result.allowed).toBe(false)
+    })
+
+    it('should reject missing content type on DELETE (L6 fix)', () => {
+      const policy = createContentTypePolicy()
+      const result = policy.validate(makeMetadata({ method: 'DELETE', contentType: null }))
+      expect(result.allowed).toBe(false)
+    })
+
+    it('should allow null content type on OPTIONS', () => {
+      const policy = createContentTypePolicy()
+      const result = policy.validate(makeMetadata({ method: 'OPTIONS', contentType: null }))
       expect(result.allowed).toBe(true)
     })
   })

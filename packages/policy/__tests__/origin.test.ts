@@ -187,18 +187,25 @@ describe('createOriginPolicy', () => {
       expect(result.allowed).toBe(false)
     })
 
-    it('should handle malformed origin string gracefully', () => {
-      // Non-URL origin strings fall through to lowercase + strip trailing slash
+    it('should reject malformed origin string (L5 fix)', () => {
+      // Non-URL origins return null from normalizeOrigin — never match
       const policy = createOriginPolicy({ allowedOrigins: ['custom-scheme'] })
       const result = policy.validate(makeMetadata({ origin: 'custom-scheme' }))
-      expect(result.allowed).toBe(true)
+      expect(result.allowed).toBe(false)
     })
 
-    it('should handle allowed origin configured as non-URL', () => {
-      // If allowedOrigins contains non-URL strings, normalizeOrigin falls back
+    it('should reject when allowed origin is non-URL (L5 fix)', () => {
+      // Non-URL entries in allowedOrigins are silently discarded
       const policy = createOriginPolicy({ allowedOrigins: ['not-a-url'] })
       const result = policy.validate(makeMetadata({ origin: 'not-a-url' }))
-      expect(result.allowed).toBe(true)
+      expect(result.allowed).toBe(false)
+    })
+
+    it('should not match malformed origins even when both sides are identical (L5 fix)', () => {
+      // Both sides normalize to null — but null never matches anything
+      const policy = createOriginPolicy({ allowedOrigins: [':::invalid'] })
+      const result = policy.validate(makeMetadata({ origin: ':::invalid' }))
+      expect(result.allowed).toBe(false)
     })
 
     it('should handle Referer with fragment', () => {

@@ -6,6 +6,29 @@ import { type KeyDomain, deriveSigningKey } from './key-derivation.js'
 /** Maximum number of keys in a keyring (active + 2 previous) */
 const MAX_KEYS = 3
 
+/** Minimum valid kid value (inclusive) */
+const KID_MIN = 0
+
+/** Maximum valid kid value (inclusive, 8-bit) */
+const KID_MAX = 255
+
+/**
+ * Validates that a kid value is within the 8-bit range (0–255).
+ *
+ * **Security (L4 fix):** Token generation masks kid via `kid & 0xff`, but
+ * the keyring stores the unmasked value. An out-of-range kid would produce
+ * tokens that can never be validated (silent failure).
+ *
+ * @throws {RangeError} If kid is not an integer in 0–255
+ */
+function validateKid(kid: number): void {
+  if (!Number.isInteger(kid) || kid < KID_MIN || kid > KID_MAX) {
+    throw new RangeError(
+      `kid must be an integer in the range ${String(KID_MIN)}–${String(KID_MAX)}, got ${String(kid)}`,
+    )
+  }
+}
+
 /**
  * A single key entry in the keyring.
  */
@@ -49,6 +72,7 @@ export async function createKeyring(
   initialKid: number,
   domain: KeyDomain,
 ): Promise<Keyring> {
+  validateKid(initialKid)
   const cryptoKey = await deriveSigningKey(cryptoProvider, masterSecret, initialKid, domain)
   const entry: KeyEntry = {
     kid: initialKid,
@@ -77,6 +101,7 @@ export async function rotateKey(
   masterSecret: ArrayBuffer,
   newKid: number,
 ): Promise<Keyring> {
+  validateKid(newKid)
   const cryptoKey = await deriveSigningKey(
     cryptoProvider,
     masterSecret,

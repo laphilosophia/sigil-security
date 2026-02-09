@@ -53,6 +53,9 @@ export function createPolicyChain(policies: readonly PolicyValidator[]): PolicyV
  * Returns a detailed result including all evaluated and failed policy names.
  * No short-circuit: ALL policies execute regardless of individual results.
  *
+ * **Security (M4 fix):** An empty policy chain fails closed. A configuration
+ * bug that produces an empty chain MUST NOT silently approve all requests.
+ *
  * @param policies - Array of policies to evaluate
  * @param metadata - Normalized request metadata
  * @returns Detailed chain evaluation result
@@ -61,6 +64,17 @@ export function evaluatePolicyChain(
   policies: readonly PolicyValidator[],
   metadata: RequestMetadata,
 ): PolicyChainResult {
+  // Fail closed on empty policy chain — prevent accidental misconfiguration
+  // from silently approving all requests
+  if (policies.length === 0) {
+    return {
+      allowed: false,
+      reason: 'empty_policy_chain',
+      evaluated: [],
+      failures: [],
+    }
+  }
+
   let allAllowed = true
   let firstReason = ''
   const evaluated: string[] = []

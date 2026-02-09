@@ -65,6 +65,7 @@ export { createContentTypePolicy } from './content-type.js'
 // ============================================================
 
 export { detectClientMode } from './mode-detection.js'
+export type { ModeDetectionConfig } from './mode-detection.js'
 
 // ============================================================
 // Context Binding (Risk Tier Model)

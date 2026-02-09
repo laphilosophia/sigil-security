@@ -60,4 +60,24 @@ We follow coordinated disclosure. We will:
 
 ---
 
+## Known Intentional Spec Deviations
+
+### `X-CSRF-Token-Expired` Response Header
+
+**Specification rule:** "NEVER differentiate error types to the client -- single message: `CSRF validation failed`"
+
+**Deviation:** When a CSRF token is rejected due to TTL expiry, Sigil includes a `X-CSRF-Token-Expired: true` header in the 403 response. The response body remains the uniform `{ "error": "CSRF validation failed" }` message.
+
+**Rationale:** This header enables client-side silent token refresh without user-visible errors. The browser SDK (`@sigil-security/client`) uses this header to detect expiry, request a fresh token, and retry the original request transparently.
+
+**Security impact:** An attacker who observes this header on a rejected request learns that the token was structurally valid and had a correct HMAC -- only the freshness check failed. This narrows the information an attacker needs from "which validation step failed" to "just solve the timing problem." However:
+
+- The attacker already possesses a previously valid token (they cannot forge one).
+- Token expiry is time-bounded and not exploitable in practice.
+- Without this header, the same information could be inferred by timing (expired tokens still complete full validation, only differing in the last check).
+
+**Mitigation for strict environments:** If this information leak is unacceptable for your threat model, you can override the error response by wrapping the adapter middleware and stripping the header before sending the response.
+
+---
+
 Thank you for helping keep Sigil-Security and its users safe.

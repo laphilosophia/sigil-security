@@ -60,10 +60,13 @@ describe('createPolicyChain', () => {
       expect(result.allowed).toBe(true)
     })
 
-    it('should allow with empty policy list', () => {
+    it('should reject with empty policy list (fail-closed, M4 fix)', () => {
       const chain = createPolicyChain([])
       const result = chain.validate(makeMetadata())
-      expect(result.allowed).toBe(true)
+      expect(result.allowed).toBe(false)
+      if (!result.allowed) {
+        expect(result.reason).toBe('empty_policy_chain')
+      }
     })
 
     it('should have correct policy name', () => {
@@ -156,10 +159,13 @@ describe('evaluatePolicyChain', () => {
     }
   })
 
-  it('should return empty arrays for no policies', () => {
+  it('should fail-closed for empty policy chain (M4 fix)', () => {
     const result = evaluatePolicyChain([], makeMetadata())
     expect(result.evaluated).toEqual([])
     expect(result.failures).toEqual([])
-    expect(result.allowed).toBe(true)
+    expect(result.allowed).toBe(false)
+    if (!result.allowed) {
+      expect(result.reason).toBe('empty_policy_chain')
+    }
   })
 })
