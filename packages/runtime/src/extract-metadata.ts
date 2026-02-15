@@ -23,9 +23,14 @@ import {
  * @returns Normalized path (no trailing slash, except for root "/")
  */
 export function normalizePath(path: string): string {
-  if (path === '/' || path === '') return '/'
-  // Strip trailing slashes
-  return path.replace(/\/+$/, '')
+  if (path.length === 0 || path === '/') return '/'
+
+  let end = path.length
+  while (end > 0 && path.charCodeAt(end - 1) === 47) end--
+
+  if (end === path.length) return path // no trailing slash → zero allocation
+  if (end === 0) return '/'
+  return path.slice(0, end)
 }
 
 /**
