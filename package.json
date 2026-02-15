@@ -11,13 +11,17 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm run build && pnpm changeset publish"
   },
   "packageManager": "pnpm@9.1.4",
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.0",
     "@eslint/js": "^9.0.0",
     "@vitest/coverage-v8": "^3.0.0",
     "eslint": "^9.0.0",
