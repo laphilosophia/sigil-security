@@ -1,12 +1,18 @@
 // @sigil-security/runtime — Oak middleware adapter (Deno)
 // Reference: SPECIFICATION.md §3
 
-import type { SigilInstance, MiddlewareOptions, ProtectResult } from '../types.js'
-import { DEFAULT_TOKEN_ENDPOINT_PATH, DEFAULT_ONESHOT_ENDPOINT_PATH } from '../types.js'
-import { extractRequestMetadata, resolveTokenSource, parseContentType, normalizePath, normalizePathSet } from '../extract-metadata.js'
-import type { HeaderGetter } from '../extract-metadata.js'
 import { createErrorResponse } from '../error-response.js'
+import type { HeaderGetter } from '../extract-metadata.js'
+import {
+  extractRequestMetadata,
+  normalizePath,
+  normalizePathSet,
+  parseContentType,
+  resolveTokenSource,
+} from '../extract-metadata.js'
 import { handleTokenEndpoint } from '../token-endpoint.js'
+import type { MiddlewareOptions, ProtectResult, SigilInstance } from '../types.js'
+import { DEFAULT_ONESHOT_ENDPOINT_PATH, DEFAULT_TOKEN_ENDPOINT_PATH } from '../types.js'
 
 // ============================================================
 // Minimal Oak-Compatible Types
@@ -17,6 +23,11 @@ export interface OakLikeContext {
   readonly request: {
     readonly method: string
     readonly url: URL
+    readonly source?: Request
+    readonly originalRequest?: {
+      readonly url?: string
+      readonly rawUrl?: string
+    }
     readonly headers: Headers
     body: () => OakBody
   }
@@ -38,6 +49,24 @@ export type OakNext = () => Promise<unknown>
 
 /** Oak middleware signature */
 export type OakMiddleware = (ctx: OakLikeContext, next: OakNext) => Promise<void>
+
+function getOakPathname(request: OakLikeContext['request']): string {
+  const sourceUrl = request.source?.url
+  if (sourceUrl) {
+    return new URL(sourceUrl).pathname
+  }
+
+  const rawUrl = request.originalRequest?.rawUrl ?? request.originalRequest?.url
+  if (typeof rawUrl === 'string' && rawUrl.length > 0) {
+    try {
+      return new URL(rawUrl, 'http://localhost').pathname
+    } catch {
+      // ignore malformed URLs and fallback to oak's parsed URL
+    }
+  }
+
+  return request.url.pathname
+}
 
 // ============================================================
 // Header Getter for Oak
@@ -77,10 +106,12 @@ export function createOakMiddleware(
 ): OakMiddleware {
   const excludePaths = normalizePathSet(options?.excludePaths ?? [])
   const tokenEndpointPath = normalizePath(options?.tokenEndpointPath ?? DEFAULT_TOKEN_ENDPOINT_PATH)
-  const oneShotEndpointPath = normalizePath(options?.oneShotEndpointPath ?? DEFAULT_ONESHOT_ENDPOINT_PATH)
+  const oneShotEndpointPath = normalizePath(
+    options?.oneShotEndpointPath ?? DEFAULT_ONESHOT_ENDPOINT_PATH,
+  )
 
   return async (ctx, next) => {
-    const path = normalizePath(ctx.request.url.pathname)
+    const path = normalizePath(getOakPathname(ctx.request))
 
     // Skip excluded paths (normalized comparison)
     if (excludePaths.has(path)) {
@@ -144,7 +175,7 @@ export function createOakMiddleware(
             protectionBody = value as Record<string, unknown>
           }
         } else if (bodyReader.type === 'form') {
-          const formData = await bodyReader.value as URLSearchParams
+          const formData = (await bodyReader.value) as URLSearchParams
           const formObj: Record<string, unknown> = {}
           formData.forEach((val, key) => {
             formObj[key] = val

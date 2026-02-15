@@ -1,20 +1,25 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createSigil } from '../src/sigil.js'
-import { createOakMiddleware } from '../src/adapters/oak.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { OakLikeContext } from '../src/adapters/oak.js'
+import { createOakMiddleware } from '../src/adapters/oak.js'
+import { createSigil } from '../src/sigil.js'
 import type { SigilInstance } from '../src/types.js'
 
 // ============================================================
 // Mock Oak Helpers
 // ============================================================
 
-function mockOakContext(overrides: {
-  method?: string
-  pathname?: string
-  headers?: Record<string, string>
-  bodyType?: string
-  bodyValue?: unknown
-} = {}): OakLikeContext & {
+function mockOakContext(
+  overrides: {
+    method?: string
+    pathname?: string
+    headers?: Record<string, string>
+    bodyType?: string
+    bodyValue?: unknown
+    sourceUrl?: string
+    originalRequestUrl?: string
+    requestUrl?: URL
+  } = {},
+): OakLikeContext & {
   _responseStatus: number
   _responseBody: unknown
   _responseHeaders: Headers
@@ -28,7 +33,11 @@ function mockOakContext(overrides: {
     _responseHeaders: responseHeaders,
     request: {
       method: overrides.method ?? 'GET',
-      url: new URL(`https://example.com${overrides.pathname ?? '/'}`),
+      url: overrides.requestUrl ?? new URL(`https://example.com${overrides.pathname ?? '/'}`),
+      ...(overrides.sourceUrl ? { source: new Request(overrides.sourceUrl) } : {}),
+      ...(overrides.originalRequestUrl
+        ? { originalRequest: { url: overrides.originalRequestUrl } }
+        : {}),
       headers: requestHeaders,
       body: () => ({
         type: overrides.bodyType,
@@ -235,6 +244,24 @@ describe('oak-adapter', () => {
 
       expect(ctx._responseStatus).toBe(403)
       expect(ctx._responseHeaders.get('X-CSRF-Token-Expired')).toBe('true')
+    })
+
+    it('should avoid request.url getter when source URL is available', async () => {
+      const middleware = createOakMiddleware(sigil)
+      const ctx = mockOakContext({
+        method: 'GET',
+        sourceUrl: 'https://example.com/page',
+      })
+      Object.defineProperty(ctx.request, 'url', {
+        get() {
+          throw new Error('request.url should not be accessed')
+        },
+      })
+      const next = vi.fn().mockResolvedValue(undefined)
+
+      await middleware(ctx, next)
+
+      expect(next).toHaveBeenCalled()
     })
   })
 })

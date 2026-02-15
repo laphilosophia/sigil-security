@@ -6,8 +6,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 target/
-Release/
-*_Release.txt
+.turbo
 
 # IDE
 .idea/
