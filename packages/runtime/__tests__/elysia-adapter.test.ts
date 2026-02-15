@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createSigil } from '../src/sigil.js'
 import { createElysiaPlugin } from '../src/adapters/elysia.js'
 import type { ElysiaLikeContext, ElysiaLikeApp } from '../src/adapters/elysia.js'
@@ -35,24 +35,27 @@ function mockElysiaContext(overrides: {
 /**
  * Creates a mock Elysia-like app that captures hooks and routes.
  */
+type ElysiaHandler = (ctx: ElysiaLikeContext) => unknown
+type RouteHandler = (ctx: ElysiaLikeContext) => unknown
+
 function mockElysiaApp(): ElysiaLikeApp & {
-  _hooks: { handler: Function }[]
-  _routes: { method: string; path: string; handler: Function }[]
+  _hooks: { handler: ElysiaHandler }[]
+  _routes: { method: string; path: string; handler: RouteHandler }[]
   runBeforeHandle: (ctx: ElysiaLikeContext) => Promise<unknown>
   callRoute: (method: string, path: string, ctx: ElysiaLikeContext) => Promise<unknown>
 } {
   const app = {
-    _hooks: [] as { handler: Function }[],
-    _routes: [] as { method: string; path: string; handler: Function }[],
-    onBeforeHandle(handler: Function) {
+    _hooks: [] as { handler: ElysiaHandler }[],
+    _routes: [] as { method: string; path: string; handler: RouteHandler }[],
+    onBeforeHandle(handler: ElysiaHandler) {
       app._hooks.push({ handler })
       return app
     },
-    get(path: string, handler: Function) {
+    get(path: string, handler: RouteHandler) {
       app._routes.push({ method: 'GET', path, handler })
       return app
     },
-    post(path: string, handler: Function) {
+    post(path: string, handler: RouteHandler) {
       app._routes.push({ method: 'POST', path, handler })
       return app
     },
@@ -63,14 +66,14 @@ function mockElysiaApp(): ElysiaLikeApp & {
       }
       return undefined
     },
-    async callRoute(method: string, path: string, ctx: ElysiaLikeContext) {
+    callRoute(method: string, path: string, ctx: ElysiaLikeContext): Promise<unknown> {
       const route = app._routes.find(
         (r) => r.method === method && r.path === path,
       )
       if (route) {
-        return route.handler(ctx)
+        return Promise.resolve(route.handler(ctx))
       }
-      return undefined
+      return Promise.resolve(undefined)
     },
   }
   return app as unknown as typeof app
@@ -296,7 +299,7 @@ describe('elysia-adapter', () => {
         },
       })
 
-      const result = await app.runBeforeHandle(ctx)
+      await app.runBeforeHandle(ctx)
 
       expect(ctx.set.status).toBe(403)
       expect(ctx.set.headers['X-CSRF-Token-Expired']).toBe('true')

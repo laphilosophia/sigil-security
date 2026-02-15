@@ -8,6 +8,7 @@ export default tseslint.config(
       '**/node_modules/**',
       '.changeset/**',
       'coverage/**',
+      '**/coverage/**',
       '**/tsup.config.ts',
       '**/vitest.config.ts',
       'vitest.config.ts',

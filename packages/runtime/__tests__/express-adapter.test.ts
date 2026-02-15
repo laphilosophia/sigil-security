@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createSigil } from '../src/sigil.js'
 import { createExpressMiddleware } from '../src/adapters/express.js'
 import type { ExpressLikeRequest, ExpressLikeResponse } from '../src/adapters/express.js'
@@ -63,13 +63,13 @@ function invokeMiddleware(
   req: ExpressLikeRequest,
   res: ReturnType<typeof mockResponse>,
 ): Promise<{ nextCalled: boolean; nextError?: unknown }> {
-  return new Promise((resolve) => {
-    const next = (err?: unknown) => {
+  return new Promise((resolve: (value: { nextCalled: boolean; nextError?: unknown }) => void) => {
+    const next = (err?: unknown): void => {
       resolve({ nextCalled: true, nextError: err })
     }
 
     // Also resolve when response is sent
-    res._settled.then(() => {
+    void res._settled.then(() => {
       resolve({ nextCalled: false })
     })
 
@@ -254,7 +254,7 @@ describe('express-adapter', () => {
       })
       const res = mockResponse()
 
-      const result = await invokeMiddleware(middleware, req, res)
+      await invokeMiddleware(middleware, req, res)
 
       // Should work normally (no error)
       expect(res._status).toBe(200)

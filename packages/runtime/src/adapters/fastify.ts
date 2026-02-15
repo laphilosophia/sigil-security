@@ -1,7 +1,7 @@
 // @sigil-security/runtime — Fastify plugin adapter
 // Reference: SPECIFICATION.md §3
 
-import type { SigilInstance, MiddlewareOptions } from '../types.js'
+import type { SigilInstance, MiddlewareOptions, ProtectResult } from '../types.js'
 import { DEFAULT_TOKEN_ENDPOINT_PATH, DEFAULT_ONESHOT_ENDPOINT_PATH } from '../types.js'
 import { extractRequestMetadata, resolveTokenSource, parseContentType, normalizePath, normalizePathSet } from '../extract-metadata.js'
 import type { HeaderGetter } from '../extract-metadata.js'
@@ -194,7 +194,7 @@ export function createFastifyPlugin(
       const metadata = extractRequestMetadata(request.method, getHeader, tokenSource)
 
       // Run protection
-      const result = await sigil.protect(metadata)
+      const result: ProtectResult = await sigil.protect(metadata)
 
       if (!result.allowed) {
         const errorResponse = createErrorResponse(result.expired)

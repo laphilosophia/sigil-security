@@ -29,10 +29,12 @@ function mockHonoContext(overrides: {
         return headers[name.toLowerCase()]
       },
       async json(): Promise<Record<string, unknown>> {
+        await Promise.resolve()
         if (overrides.jsonBody !== undefined) return overrides.jsonBody
         throw new Error('No JSON body')
       },
       async parseBody(): Promise<Record<string, unknown>> {
+        await Promise.resolve()
         if (overrides.formBody !== undefined) return overrides.formBody
         throw new Error('No form body')
       },
@@ -83,7 +85,7 @@ describe('hono-adapter', () => {
       })
       const next = vi.fn().mockResolvedValue(undefined)
 
-      const response = await middleware(ctx, next)
+      await middleware(ctx, next)
 
       expect(next).not.toHaveBeenCalled()
       expect(ctx._response.status).toBe(200)

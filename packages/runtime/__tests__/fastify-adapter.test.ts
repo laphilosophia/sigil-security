@@ -52,22 +52,25 @@ function mockReply(): FastifyLikeReply & {
 /**
  * Creates a minimal mock Fastify instance that captures registered hooks and routes.
  */
+type FastifyPreHandler = (req: FastifyLikeRequest, reply: FastifyLikeReply) => void | Promise<void>
+type FastifyRouteHandler = (req: FastifyLikeRequest, reply: FastifyLikeReply) => void | Promise<void>
+
 function mockFastifyInstance(): FastifyLikeInstance & {
-  _hooks: { name: string; handler: Function }[]
-  _routes: { method: string; path: string; handler: Function }[]
+  _hooks: { name: string; handler: FastifyPreHandler }[]
+  _routes: { method: string; path: string; handler: FastifyRouteHandler }[]
   runPreHandler: (req: FastifyLikeRequest, reply: FastifyLikeReply) => Promise<void>
   callRoute: (method: string, path: string, req: FastifyLikeRequest, reply: FastifyLikeReply) => Promise<void>
 } {
   const instance = {
-    _hooks: [] as { name: string; handler: Function }[],
-    _routes: [] as { method: string; path: string; handler: Function }[],
-    addHook(name: string, handler: Function) {
+    _hooks: [] as { name: string; handler: FastifyPreHandler }[],
+    _routes: [] as { method: string; path: string; handler: FastifyRouteHandler }[],
+    addHook(name: string, handler: FastifyPreHandler) {
       instance._hooks.push({ name, handler })
     },
-    get(path: string, handler: Function) {
+    get(path: string, handler: FastifyRouteHandler) {
       instance._routes.push({ method: 'GET', path, handler })
     },
-    post(path: string, handler: Function) {
+    post(path: string, handler: FastifyRouteHandler) {
       instance._routes.push({ method: 'POST', path, handler })
     },
     async runPreHandler(req: FastifyLikeRequest, reply: FastifyLikeReply) {
