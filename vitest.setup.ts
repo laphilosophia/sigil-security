@@ -1,3 +1,7 @@
+// Ensure Web Crypto API is available in test env (Node's implementation)
+import { webcrypto } from 'node:crypto'
+;(globalThis as unknown as { crypto: Crypto }).crypto = webcrypto as Crypto
+
 // #region agent log — runtime evidence for crypto/globalThis (hypotheses H1–H5)
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
