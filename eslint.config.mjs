@@ -6,7 +6,6 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
-      '.changeset/**',
       'coverage/**',
       '**/coverage/**',
       '**/tsup.config.ts',
