@@ -12,6 +12,7 @@ export default tseslint.config(
       '**/tsup.config.ts',
       '**/vitest.config.ts',
       'vitest.config.ts',
+      'vitest.setup.ts',
       'vitest.workspace.ts',
     ],
   },

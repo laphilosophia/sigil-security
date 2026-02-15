@@ -41,7 +41,7 @@ describe('encoding', () => {
 
     it('should round-trip 89 bytes (token size)', () => {
       const buf = new Uint8Array(89)
-      crypto.getRandomValues(buf)
+      globalThis.crypto.getRandomValues(buf)
       const encoded = toBase64Url(buf)
       const decoded = fromBase64Url(encoded)
       expect(decoded).toEqual(buf)
@@ -49,7 +49,7 @@ describe('encoding', () => {
 
     it('should round-trip 120 bytes (one-shot token size)', () => {
       const buf = new Uint8Array(120)
-      crypto.getRandomValues(buf)
+      globalThis.crypto.getRandomValues(buf)
       const encoded = toBase64Url(buf)
       const decoded = fromBase64Url(encoded)
       expect(decoded).toEqual(buf)

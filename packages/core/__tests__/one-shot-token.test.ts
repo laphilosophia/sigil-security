@@ -20,7 +20,7 @@ import { fromBase64Url } from '../src/encoding.js'
 
 describe('one-shot-token', () => {
   const provider = new WebCryptoCryptoProvider()
-  const masterSecret = crypto.getRandomValues(new Uint8Array(32)).buffer
+  const masterSecret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
   const action = 'POST:/api/account/delete'
 
   describe('computeAction', () => {

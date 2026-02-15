@@ -64,7 +64,7 @@ describe('WebCryptoCryptoProvider', () => {
 
   describe('deriveKey (HKDF-SHA256)', () => {
     it('should derive a CryptoKey', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key = await provider.deriveKey(master, 'sigil-v1', 'csrf-signing-key-1')
       expect(key).toBeDefined()
       expect(key.type).toBe('secret')
@@ -72,7 +72,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should derive different keys for different info strings', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key1 = await provider.deriveKey(master, 'sigil-v1', 'csrf-signing-key-1')
       const key2 = await provider.deriveKey(master, 'sigil-v1', 'csrf-signing-key-2')
 
@@ -84,7 +84,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should derive different keys for different salts', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key1 = await provider.deriveKey(master, 'salt-1', 'info')
       const key2 = await provider.deriveKey(master, 'salt-2', 'info')
 
@@ -95,8 +95,8 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should derive different keys for different masters', async () => {
-      const master1 = crypto.getRandomValues(new Uint8Array(32)).buffer
-      const master2 = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master1 = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master2 = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key1 = await provider.deriveKey(master1, 'sigil-v1', 'csrf-signing-key-1')
       const key2 = await provider.deriveKey(master2, 'sigil-v1', 'csrf-signing-key-1')
 
@@ -107,7 +107,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should derive deterministic keys (same input = same output)', async () => {
-      const masterBytes = crypto.getRandomValues(new Uint8Array(32))
+      const masterBytes = globalThis.crypto.getRandomValues(new Uint8Array(32))
       const key1 = await provider.deriveKey(masterBytes.buffer.slice(0), 'sigil-v1', 'info')
       const key2 = await provider.deriveKey(masterBytes.buffer.slice(0), 'sigil-v1', 'info')
 
@@ -120,7 +120,7 @@ describe('WebCryptoCryptoProvider', () => {
 
   describe('sign / verify (HMAC-SHA256)', () => {
     it('should sign and verify successfully', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key = await provider.deriveKey(master, 'sigil-v1', 'test-key')
       const data = new Uint8Array([1, 2, 3, 4, 5])
 
@@ -132,7 +132,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should reject tampered data', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key = await provider.deriveKey(master, 'sigil-v1', 'test-key')
       const data = new Uint8Array([1, 2, 3, 4, 5])
 
@@ -145,7 +145,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should reject tampered MAC', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key = await provider.deriveKey(master, 'sigil-v1', 'test-key')
       const data = new Uint8Array([1, 2, 3, 4, 5])
 
@@ -160,7 +160,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should reject wrong key', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key1 = await provider.deriveKey(master, 'sigil-v1', 'key-1')
       const key2 = await provider.deriveKey(master, 'sigil-v1', 'key-2')
       const data = new Uint8Array([1, 2, 3, 4, 5])
@@ -171,7 +171,7 @@ describe('WebCryptoCryptoProvider', () => {
     })
 
     it('should produce 32-byte MAC (full 256-bit, no truncation)', async () => {
-      const master = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const key = await provider.deriveKey(master, 'sigil-v1', 'test-key')
       const mac = await provider.sign(key, new Uint8Array([1]))
       expect(mac.byteLength).toBe(32)

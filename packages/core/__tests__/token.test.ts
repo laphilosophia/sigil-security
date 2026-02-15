@@ -13,7 +13,7 @@ import { fromBase64Url, toArrayBuffer } from '../src/encoding.js'
 
 describe('token', () => {
   const provider = new WebCryptoCryptoProvider()
-  const masterSecret = crypto.getRandomValues(new Uint8Array(32)).buffer
+  const masterSecret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
 
   describe('generateToken', () => {
     it('should generate a valid token', async () => {
@@ -158,7 +158,7 @@ describe('token', () => {
     it('should return null for oversized token', async () => {
       // Create a buffer larger than expected
       const oversized = new Uint8Array(TOKEN_RAW_SIZE + 10)
-      crypto.getRandomValues(oversized)
+      globalThis.crypto.getRandomValues(oversized)
       const { toBase64Url } = await import('../src/encoding.js')
       const encoded = toBase64Url(oversized)
       expect(parseToken(encoded)).toBeNull()
@@ -197,10 +197,10 @@ describe('token', () => {
   describe('serializeToken', () => {
     it('should produce parseable token', () => {
       const kid = 5
-      const nonce = crypto.getRandomValues(new Uint8Array(NONCE_SIZE))
+      const nonce = globalThis.crypto.getRandomValues(new Uint8Array(NONCE_SIZE))
       const ts = Date.now()
-      const ctx = crypto.getRandomValues(new Uint8Array(CONTEXT_SIZE))
-      const mac = crypto.getRandomValues(new Uint8Array(MAC_SIZE))
+      const ctx = globalThis.crypto.getRandomValues(new Uint8Array(CONTEXT_SIZE))
+      const mac = globalThis.crypto.getRandomValues(new Uint8Array(MAC_SIZE))
 
       const token = serializeToken(kid, nonce, ts, ctx, mac)
       const parsed = parseToken(token)
@@ -214,9 +214,9 @@ describe('token', () => {
     })
 
     it('should produce constant-size output', () => {
-      const nonce = crypto.getRandomValues(new Uint8Array(NONCE_SIZE))
-      const ctx = crypto.getRandomValues(new Uint8Array(CONTEXT_SIZE))
-      const mac = crypto.getRandomValues(new Uint8Array(MAC_SIZE))
+      const nonce = globalThis.crypto.getRandomValues(new Uint8Array(NONCE_SIZE))
+      const ctx = globalThis.crypto.getRandomValues(new Uint8Array(CONTEXT_SIZE))
+      const mac = globalThis.crypto.getRandomValues(new Uint8Array(MAC_SIZE))
 
       const token = serializeToken(0, nonce, 0, ctx, mac)
       const raw = fromBase64Url(token)
