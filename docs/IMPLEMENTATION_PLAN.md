@@ -1218,7 +1218,7 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 - npm publish automation (GitHub Actions)
 - Package provenance (npm provenance statements)
 - `CHANGELOG.md` generation
-- Version: `0.1.0` (initial release)
+- Version: `1.0.0` (stable initial release)
 
 ### 7.4 Documentation Updates
 
