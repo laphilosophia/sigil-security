@@ -1,6 +1,12 @@
-// Ensure Web Crypto API is available in test env (Node's implementation)
+// Ensure Web Crypto API is available in test env (CI workers may not have globalThis.crypto)
 import { webcrypto } from 'node:crypto'
-;(globalThis as unknown as { crypto: Crypto }).crypto = webcrypto as Crypto
+if (typeof (globalThis as unknown as { crypto?: Crypto }).crypto === 'undefined') {
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    writable: true,
+    configurable: true,
+  })
+}
 
 // #region agent log — runtime evidence for crypto/globalThis (hypotheses H1–H5)
 import { appendFileSync, mkdirSync } from 'node:fs'
