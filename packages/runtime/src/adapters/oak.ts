@@ -1,5 +1,8 @@
 // @sigil-security/runtime — Oak middleware adapter (Deno)
 // Reference: SPECIFICATION.md §3
+//
+// CVE-2024-49770 (Oak Context.send): This adapter does NOT use Context.send.
+// See docs/SECURITY_ADVISORIES.md for exposure and upgrade guidance.
 
 import { createErrorResponse } from '../error-response.js'
 import type { HeaderGetter } from '../extract-metadata.js'

@@ -1,5 +1,6 @@
 // @sigil-security/runtime — Public API surface
 // Framework adapters for request handling
+// Dependency CVEs (e.g. Oak CVE-2024-49770): see repo docs/SECURITY_ADVISORIES.md
 
 // ============================================================
 // Types

@@ -118,7 +118,15 @@
 
 ---
 
-### 6. [`README.md`](./README.md) - This Document
+### 6. [`SECURITY_ADVISORIES.md`](./SECURITY_ADVISORIES.md) - Dependency Advisories
+
+**Scope:** Third-party CVEs and Sigil’s exposure (e.g. CVE-2024-49770 / Oak)
+
+**Audience:** Security reviewers, maintainers
+
+---
+
+### 7. [`README.md`](./README.md) - This Document
 
 **Scope:** Documentation index, quick start, project status
 
