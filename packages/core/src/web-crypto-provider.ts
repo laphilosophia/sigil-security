@@ -18,7 +18,7 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
    * Returns full 256-bit (32-byte) MAC, NO truncation.
    */
   async sign(key: CryptoKey, data: Uint8Array): Promise<ArrayBuffer> {
-    return crypto.subtle.sign('HMAC', key, data as Uint8Array<ArrayBuffer>)
+    return globalThis.crypto.subtle.sign('HMAC', key, data as Uint8Array<ArrayBuffer>)
   }
 
   /**
@@ -26,7 +26,7 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
    * Inherently constant-time via crypto.subtle.verify.
    */
   async verify(key: CryptoKey, signature: ArrayBuffer, data: Uint8Array): Promise<boolean> {
-    return crypto.subtle.verify('HMAC', key, signature, data as Uint8Array<ArrayBuffer>)
+    return globalThis.crypto.subtle.verify('HMAC', key, signature, data as Uint8Array<ArrayBuffer>)
   }
 
   /**
@@ -42,12 +42,12 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
     const encoder = new TextEncoder()
 
     // Import master as raw key material for HKDF
-    const baseKey = await crypto.subtle.importKey('raw', master, { name: 'HKDF' }, false, [
+    const baseKey = await globalThis.crypto.subtle.importKey('raw', master, { name: 'HKDF' }, false, [
       'deriveKey',
     ])
 
     // Derive HMAC-SHA256 signing key via HKDF
-    return crypto.subtle.deriveKey(
+    return globalThis.crypto.subtle.deriveKey(
       {
         name: 'HKDF',
         hash: 'SHA-256',
@@ -67,7 +67,7 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
    */
   randomBytes(length: number): Uint8Array {
     const buffer = new Uint8Array(length)
-    crypto.getRandomValues(buffer)
+    globalThis.crypto.getRandomValues(buffer)
     return buffer
   }
 
@@ -76,6 +76,6 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
    * Returns full 256-bit (32-byte) digest.
    */
   async hash(data: Uint8Array): Promise<ArrayBuffer> {
-    return crypto.subtle.digest('SHA-256', data as Uint8Array<ArrayBuffer>)
+    return globalThis.crypto.subtle.digest('SHA-256', data as Uint8Array<ArrayBuffer>)
   }
 }

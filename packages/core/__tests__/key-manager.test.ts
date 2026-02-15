@@ -9,7 +9,7 @@ import {
 
 describe('key-manager', () => {
   const provider = new WebCryptoCryptoProvider()
-  const masterSecret = crypto.getRandomValues(new Uint8Array(32)).buffer
+  const masterSecret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
 
   describe('createKeyring', () => {
     it('should create a keyring with one key', async () => {

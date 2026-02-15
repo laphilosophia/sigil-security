@@ -8,7 +8,7 @@ import { DEFAULT_TOKEN_TTL_MS, DEFAULT_GRACE_WINDOW_MS } from '../src/types.js'
 
 describe('validation', () => {
   const provider = new WebCryptoCryptoProvider()
-  const masterSecret = crypto.getRandomValues(new Uint8Array(32)).buffer
+  const masterSecret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
 
   describe('validateToken', () => {
     it('should validate a freshly generated token', async () => {

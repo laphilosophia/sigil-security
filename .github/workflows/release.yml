@@ -47,6 +47,11 @@ jobs:
       - name: Test
         run: pnpm run test
 
+      - name: Show debug log
+        if: always()
+        run: |
+          if [ -f .cursor/debug.log ]; then echo '--- .cursor/debug.log ---'; cat .cursor/debug.log; fi
+
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1

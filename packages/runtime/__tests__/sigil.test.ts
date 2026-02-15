@@ -34,7 +34,7 @@ describe('sigil', () => {
     })
 
     it('should accept ArrayBuffer master secret', async () => {
-      const secret = crypto.getRandomValues(new Uint8Array(32)).buffer
+      const secret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
       const instance = await createSigil({
         masterSecret: secret,
         allowedOrigins: ['https://example.com'],

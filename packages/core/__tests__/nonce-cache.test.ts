@@ -7,7 +7,7 @@ describe('nonce-cache', () => {
   })
 
   function randomNonce(): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(16))
+    return globalThis.crypto.getRandomValues(new Uint8Array(16))
   }
 
   describe('createNonceCache', () => {
