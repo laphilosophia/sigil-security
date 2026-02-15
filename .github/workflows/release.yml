@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -53,6 +56,7 @@ jobs:
           if [ -f .cursor/debug.log ]; then echo '--- .cursor/debug.log ---'; cat .cursor/debug.log; fi
 
       - name: Create Release Pull Request or Publish
+        if: github.event_name == 'push'
         id: changesets
         uses: changesets/action@v1
         with:
@@ -65,14 +69,14 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Get version for GitHub Release
-        if: steps.changesets.outputs.published == 'true'
+        if: github.event_name == 'push' && steps.changesets.outputs.published == 'true'
         id: get_version
         run: |
           VERSION=$(node -p "require('./packages/core/package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        if: steps.changesets.outputs.published == 'true'
+        if: github.event_name == 'push' && steps.changesets.outputs.published == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
