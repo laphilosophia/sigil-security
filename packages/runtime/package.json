@@ -1,1 +1,141 @@
-{"name":"@sigil-security/runtime","version":"0.0.0","description":"Framework adapters — Express, Fastify, Hono, Oak, Elysia, native fetch","type":"module","exports":{".":{"import":{"types":"./dist/index.d.ts","default":"./dist/index.js"},"require":{"types":"./dist/index.d.cts","default":"./dist/index.cjs"}},"./express":{"import":{"types":"./dist/adapters/express.d.ts","default":"./dist/adapters/express.js"},"require":{"types":"./dist/adapters/express.d.cts","default":"./dist/adapters/express.cjs"}},"./fastify":{"import":{"types":"./dist/adapters/fastify.d.ts","default":"./dist/adapters/fastify.js"},"require":{"types":"./dist/adapters/fastify.d.cts","default":"./dist/adapters/fastify.cjs"}},"./hono":{"import":{"types":"./dist/adapters/hono.d.ts","default":"./dist/adapters/hono.js"},"require":{"types":"./dist/adapters/hono.d.cts","default":"./dist/adapters/hono.cjs"}},"./oak":{"import":{"types":"./dist/adapters/oak.d.ts","default":"./dist/adapters/oak.js"},"require":{"types":"./dist/adapters/oak.d.cts","default":"./dist/adapters/oak.cjs"}},"./elysia":{"import":{"types":"./dist/adapters/elysia.d.ts","default":"./dist/adapters/elysia.js"},"require":{"types":"./dist/adapters/elysia.d.cts","default":"./dist/adapters/elysia.cjs"}},"./fetch":{"import":{"types":"./dist/adapters/fetch.d.ts","default":"./dist/adapters/fetch.js"},"require":{"types":"./dist/adapters/fetch.d.cts","default":"./dist/adapters/fetch.cjs"}}},"main":"./dist/index.cjs","module":"./dist/index.js","types":"./dist/index.d.ts","files":["dist"],"scripts":{"build":"tsup","typecheck":"tsc --noEmit"},"keywords":["csrf","security","middleware","express","fastify","hono","oak","elysia","fetch","edge"],"license":"Apache-2.0","repository":{"type":"git","url":"https://github.com/laphilosophia/sigil-security.git","directory":"packages/runtime"},"dependencies":{"@sigil-security/core":"workspace:*","@sigil-security/policy":"workspace:*"},"devDependencies":{"tsup":"^8.0.0","typescript":"^5.7.0"},"peerDependencies":{"express":">=4.0.0","fastify":">=4.0.0","hono":">=4.0.0","@oakserver/oak":">=12.0.0","elysia":">=1.0.0"},"peerDependenciesMeta":{"express":{"optional":true},"fastify":{"optional":true},"hono":{"optional":true},"@oakserver/oak":{"optional":true},"elysia":{"optional":true}},"publishConfig":{"access":"public"}}
+{
+  "name": "@sigil-security/runtime",
+  "version": "1.0.0",
+  "description": "Framework adapters — Express, Fastify, Hono, Oak, Elysia, native fetch",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./express": {
+      "import": {
+        "types": "./dist/adapters/express.d.ts",
+        "default": "./dist/adapters/express.js"
+      },
+      "require": {
+        "types": "./dist/adapters/express.d.cts",
+        "default": "./dist/adapters/express.cjs"
+      }
+    },
+    "./fastify": {
+      "import": {
+        "types": "./dist/adapters/fastify.d.ts",
+        "default": "./dist/adapters/fastify.js"
+      },
+      "require": {
+        "types": "./dist/adapters/fastify.d.cts",
+        "default": "./dist/adapters/fastify.cjs"
+      }
+    },
+    "./hono": {
+      "import": {
+        "types": "./dist/adapters/hono.d.ts",
+        "default": "./dist/adapters/hono.js"
+      },
+      "require": {
+        "types": "./dist/adapters/hono.d.cts",
+        "default": "./dist/adapters/hono.cjs"
+      }
+    },
+    "./oak": {
+      "import": {
+        "types": "./dist/adapters/oak.d.ts",
+        "default": "./dist/adapters/oak.js"
+      },
+      "require": {
+        "types": "./dist/adapters/oak.d.cts",
+        "default": "./dist/adapters/oak.cjs"
+      }
+    },
+    "./elysia": {
+      "import": {
+        "types": "./dist/adapters/elysia.d.ts",
+        "default": "./dist/adapters/elysia.js"
+      },
+      "require": {
+        "types": "./dist/adapters/elysia.d.cts",
+        "default": "./dist/adapters/elysia.cjs"
+      }
+    },
+    "./fetch": {
+      "import": {
+        "types": "./dist/adapters/fetch.d.ts",
+        "default": "./dist/adapters/fetch.js"
+      },
+      "require": {
+        "types": "./dist/adapters/fetch.d.cts",
+        "default": "./dist/adapters/fetch.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "csrf",
+    "security",
+    "middleware",
+    "express",
+    "fastify",
+    "hono",
+    "oak",
+    "elysia",
+    "fetch",
+    "edge"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/laphilosophia/sigil-security.git",
+    "directory": "packages/runtime"
+  },
+  "dependencies": {
+    "@sigil-security/core": "workspace:*",
+    "@sigil-security/policy": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0",
+    "fastify": ">=4.0.0",
+    "hono": ">=4.0.0",
+    "@oakserver/oak": ">=12.0.0",
+    "elysia": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    },
+    "hono": {
+      "optional": true
+    },
+    "@oakserver/oak": {
+      "optional": true
+    },
+    "elysia": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
