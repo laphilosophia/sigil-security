@@ -12,9 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r run typecheck",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "pnpm run build && pnpm changeset publish"
+    "changeset": "npx @changesets/cli",
+    "version-packages": "npx @changesets/cli version",
+    "release": "pnpm run build && npx @changesets/cli publish"
   },
   "packageManager": "pnpm@9.1.4",
   "engines": {
