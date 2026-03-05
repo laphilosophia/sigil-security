@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/ops",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Telemetry, monitoring, and anomaly detection — optional observability layer",
   "type": "module",
   "exports": {

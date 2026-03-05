@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/runtime",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Framework adapters — Express, Fastify, Elysia, native fetch",
   "type": "module",
   "exports": {
