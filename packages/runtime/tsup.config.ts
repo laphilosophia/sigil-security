@@ -5,8 +5,6 @@ export default defineConfig({
     index: 'src/index.ts',
     'adapters/express': 'src/adapters/express.ts',
     'adapters/fastify': 'src/adapters/fastify.ts',
-    'adapters/hono': 'src/adapters/hono.ts',
-    'adapters/oak': 'src/adapters/oak.ts',
     'adapters/elysia': 'src/adapters/elysia.ts',
     'adapters/fetch': 'src/adapters/fetch.ts',
   },
@@ -18,8 +16,6 @@ export default defineConfig({
   external: [
     'express',
     'fastify',
-    'hono',
-    '@oakserver/oak',
     'elysia',
   ],
 })

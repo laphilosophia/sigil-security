@@ -97,7 +97,7 @@ These responsibilities belong to the **Policy Layer.**
 
 The Core does not:
 
-- Integrate with Express, Hono, Oak, or other frameworks
+- Integrate with framework runtimes (Express, Fastify, Elysia, etc.)
 - Accept HTTP request objects
 - Understand its environment
 - Include a configuration store
