@@ -76,6 +76,12 @@ describe('encoding', () => {
     it('should throw on invalid base64url input', () => {
       expect(() => fromBase64Url('!!!invalid!!!')).toThrow()
     })
+
+    it('should reject non-canonical base64url spelling', () => {
+      // 0xff canonical base64url is "_w". "_x" decodes to the same byte but is non-canonical.
+      expect(toBase64Url(new Uint8Array([0xff]))).toBe('_w')
+      expect(() => fromBase64Url('_x')).toThrow()
+    })
   })
 
   describe('writeUint64BE / readUint64BE', () => {

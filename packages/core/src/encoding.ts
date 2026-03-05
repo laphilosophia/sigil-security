@@ -20,6 +20,12 @@ export function toBase64Url(buffer: Uint8Array): string {
  * @throws {Error} If the input is not valid base64url
  */
 export function fromBase64Url(encoded: string): Uint8Array {
+  // Only accept RFC 4648 base64url alphabet without padding.
+  // This rejects alternative textual encodings that decode to the same bytes.
+  if (!/^[A-Za-z0-9_-]*$/.test(encoded)) {
+    throw new Error('Invalid base64url input')
+  }
+
   // Restore standard base64 characters
   let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/')
 
@@ -32,6 +38,12 @@ export function fromBase64Url(encoded: string): Uint8Array {
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)
   }
+
+  // Enforce canonical base64url representation (no alternate spellings).
+  if (toBase64Url(bytes) !== encoded) {
+    throw new Error('Non-canonical base64url input')
+  }
+
   return bytes
 }
 
