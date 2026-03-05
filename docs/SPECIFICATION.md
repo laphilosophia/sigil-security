@@ -63,7 +63,7 @@ The core validation logic consists of pure functions and is runtime-agnostic. Th
    - Fetch Metadata, Origin/Referer, Method, Content-Type, Same-site relationship
 
 3. **Adapters**
-   - Express, Fastify, Hono, Oak, Elysia, native fetch
+   - Express, Fastify, Elysia, native fetch
 
 4. **Crypto Layer**
    - WebCrypto (Node 18+, Bun, Deno). No native dependencies.
@@ -654,8 +654,6 @@ Phase 3 — Adapters
 
 - Express
 - Fastify
-- Hono
-- Oak
 - Elysia
 - Native fetch
 

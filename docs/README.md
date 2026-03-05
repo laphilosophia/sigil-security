@@ -120,7 +120,7 @@
 
 ### 6. [`SECURITY_ADVISORIES.md`](./SECURITY_ADVISORIES.md) - Dependency Advisories
 
-**Scope:** Third-party CVEs and Sigil’s exposure (e.g. CVE-2024-49770 / Oak)
+**Scope:** Third-party CVEs, Sigil exposure, and temporary adapter support decisions
 
 **Audience:** Security reviewers, maintainers
 
@@ -191,7 +191,7 @@
 1. Project Infrastructure — Monorepo, CI/CD (1 week)
 2. Core Library — CryptoProvider, domain-separated keys, constant-length tokens (2-3 weeks)
 3. Policy Engine — Fetch Metadata, Origin, context binding, risk tiers (1-2 weeks)
-4. Framework Adapters — Express, Fastify, Hono, Oak, Elysia, native fetch (2-3 weeks)
+4. Framework Adapters — Express, Fastify, Elysia, native fetch (2-3 weeks)
 5. Browser SDK — Silent refresh, multi-tab sync, leader election (1-2 weeks)
 6. Telemetry — Pluggable metrics, anomaly detection, structured logging (1 week)
 7. Testing & Security — Unit, security, fuzzing, benchmarks (2 weeks)

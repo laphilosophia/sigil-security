@@ -28,7 +28,7 @@ Sigil is a monorepo with strict architectural layer separation:
 | ------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
 | `@sigil-security/core`    | Cryptographic Primitive | Token generation/validation, HMAC, HKDF, constant-time ops, one-shot tokens. **Zero dependencies.** |
 | `@sigil-security/policy`  | Validation Policies     | Fetch Metadata, Origin/Referer, context binding, risk tiers, Browser/API mode detection.            |
-| `@sigil-security/runtime` | Framework Adapters      | Express, Fastify, Hono, Oak, Elysia, native fetch middleware.                                       |
+| `@sigil-security/runtime` | Framework Adapters      | Express, Fastify, Elysia, native fetch middleware.                                                   |
 | `@sigil-security/ops`     | Telemetry (Optional)    | Pluggable metrics, anomaly detection, structured logging, SIEM export.                              |
 | `@sigil-security/client`  | Browser SDK             | Silent refresh, multi-tab sync (BroadcastChannel), leader election, token storage.                  |
 

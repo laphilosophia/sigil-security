@@ -73,8 +73,6 @@ graph TD
     subgraph runtime ["@sigil-security/runtime (Framework Adapters)"]
         Express["Express Adapter"]
         Fastify["Fastify Adapter"]
-        Hono["Hono Adapter"]
-        Oak["Oak Adapter"]
         Elysia["Elysia Adapter"]
         NativeFetch["Native Fetch Adapter"]
         TokenEndpoint["Token Endpoint Handler"]
@@ -247,8 +245,6 @@ packages/
       adapters/
         express.ts
         fastify.ts
-        hono.ts
-        oak.ts
         elysia.ts
         fetch.ts
     __tests__/
@@ -922,8 +918,6 @@ Each adapter follows the same pattern:
 | ------------ | ------------------------- | ---------------------------------------------- |
 | Express      | `src/adapters/express.ts` | `RequestHandler` middleware (`req/res/next`)   |
 | Fastify      | `src/adapters/fastify.ts` | `FastifyPluginCallback` (hook/plugin + schema) |
-| Hono         | `src/adapters/hono.ts`    | `MiddlewareHandler` (`c.req`/`c.res`)          |
-| Oak          | `src/adapters/oak.ts`     | Oak middleware (Deno)                          |
 | Elysia       | `src/adapters/elysia.ts`  | Elysia plugin (Bun)                            |
 | Native Fetch | `src/adapters/fetch.ts`   | `Request/Response` API (Edge runtime)          |
 
@@ -957,8 +951,6 @@ Returns: `{ token, expiresAt }` (regular) or `{ token, expiresAt, action }` (one
 - [x] `src/error-response.ts` — Uniform error responses (`createErrorResponse`)
 - [x] `src/adapters/express.ts` — Express `RequestHandler` middleware
 - [x] `src/adapters/fastify.ts` — Fastify plugin (`onRequest` hook + routes)
-- [x] `src/adapters/hono.ts` — Hono `MiddlewareHandler`
-- [x] `src/adapters/oak.ts` — Oak middleware (Deno)
 - [x] `src/adapters/elysia.ts` — Elysia plugin (Bun)
 - [x] `src/adapters/fetch.ts` — Native Fetch adapter (Edge runtime)
 - [x] Integration tests (Express mock, Fetch API adapter)
@@ -1208,7 +1200,6 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 | Example                   | Description                                 |
 | ------------------------- | ------------------------------------------- |
 | `examples/express-basic/` | Express + Sigil (minimal setup)             |
-| `examples/hono-edge/`     | Hono on Cloudflare Workers                  |
 | `examples/fastify-api/`   | Fastify with API mode                       |
 | `examples/one-shot/`      | High-assurance endpoint with one-shot token |
 
@@ -1231,7 +1222,7 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 - [ ] TSDoc on all exported APIs
 - [ ] API reference generated (typedoc)
-- [ ] Usage examples (at least Express + Hono)
+- [ ] Usage examples (at least Express + Fastify)
 - [ ] Changesets configuration
 - [ ] npm publish workflow
 - [ ] `CHANGELOG.md`
@@ -1402,8 +1393,7 @@ gantt
     Phase_2_PolicyChain       :c4, after c3, 2d
     section Runtime
     Phase_3_Express_Fastify   :d1, after c4, 4d
-    Phase_3_Hono_Fetch        :d2, after c4, 3d
-    Phase_3_Oak_Elysia        :d3, after d1, 3d
+    Phase_3_Fetch_Elysia      :d2, after c4, 3d
     Phase_3_TokenEndpoint     :d4, after d2, 2d
     section Client
     Phase_4_BrowserSDK        :e1, after d1, 5d
