@@ -37,3 +37,6 @@ packages/*/coverage/
 # Temporary
 tmp/
 temp/
+
+# Misc
+research/

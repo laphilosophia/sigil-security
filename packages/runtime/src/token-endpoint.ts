@@ -1,13 +1,13 @@
 // @sigil-security/runtime — Token endpoint handler
 // Reference: SPECIFICATION.md §3 — Token generation endpoints
 
-import type { SigilInstance, TokenEndpointResult } from './types.js'
 import {
   createClientErrorResponse,
   createErrorResponse,
-  createTokenResponse,
   createOneShotTokenResponse,
+  createTokenResponse,
 } from './error-response.js'
+import type { SigilInstance, TokenEndpointResult } from './types.js'
 
 /**
  * Handles token generation requests.
@@ -50,11 +50,7 @@ export async function handleTokenEndpoint(
 
   // POST /api/csrf/one-shot → Generate one-shot token
   // Requires a valid regular CSRF token for defense-in-depth
-  if (
-    sigil.config.oneShotEnabled &&
-    path === oneShotEndpointPath &&
-    upperMethod === 'POST'
-  ) {
+  if (sigil.config.oneShotEnabled && path === oneShotEndpointPath && upperMethod === 'POST') {
     // Validate CSRF token before generating one-shot token
     if (csrfTokenValue === undefined || csrfTokenValue === null || csrfTokenValue === '') {
       const errorResponse = createErrorResponse(false)
@@ -62,7 +58,7 @@ export async function handleTokenEndpoint(
         handled: true,
         status: errorResponse.status,
         body: errorResponse.body,
-        headers: errorResponse.headers as Record<string, string>,
+        headers: errorResponse.headers,
       }
     }
 
@@ -73,7 +69,7 @@ export async function handleTokenEndpoint(
         handled: true,
         status: errorResponse.status,
         body: errorResponse.body,
-        headers: errorResponse.headers as Record<string, string>,
+        headers: errorResponse.headers,
       }
     }
 
@@ -87,9 +83,7 @@ export async function handleTokenEndpoint(
 /**
  * Generates a regular CSRF token.
  */
-async function handleRegularTokenGeneration(
-  sigil: SigilInstance,
-): Promise<TokenEndpointResult> {
+async function handleRegularTokenGeneration(sigil: SigilInstance): Promise<TokenEndpointResult> {
   const result = await sigil.generateToken()
 
   if (!result.success) {
@@ -98,7 +92,7 @@ async function handleRegularTokenGeneration(
       handled: true,
       status: errorResponse.status,
       body: errorResponse.body,
-      headers: errorResponse.headers as Record<string, string>,
+      headers: errorResponse.headers,
     }
   }
 
@@ -125,7 +119,7 @@ async function handleOneShotTokenGeneration(
       handled: true,
       status: errorResponse.status,
       body: errorResponse.body,
-      headers: errorResponse.headers as Record<string, string>,
+      headers: errorResponse.headers,
     }
   }
 
@@ -136,7 +130,7 @@ async function handleOneShotTokenGeneration(
       handled: true,
       status: errorResponse.status,
       body: errorResponse.body,
-      headers: errorResponse.headers as Record<string, string>,
+      headers: errorResponse.headers,
     }
   }
 
@@ -158,7 +152,7 @@ async function handleOneShotTokenGeneration(
       handled: true,
       status: errorResponse.status,
       body: errorResponse.body,
-      headers: errorResponse.headers as Record<string, string>,
+      headers: errorResponse.headers,
     }
   }
 
@@ -175,14 +169,12 @@ async function handleOneShotTokenGeneration(
  * Creates a standardized error result for the token endpoint.
  * Used by adapters when they need to produce error responses.
  */
-export function createTokenEndpointError(
-  expired: boolean,
-): TokenEndpointResult {
+export function createTokenEndpointError(expired: boolean): TokenEndpointResult {
   const errorResponse = createErrorResponse(expired)
   return {
     handled: true,
     status: errorResponse.status,
     body: errorResponse.body,
-    headers: errorResponse.headers as Record<string, string>,
+    headers: errorResponse.headers,
   }
 }
