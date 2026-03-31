@@ -5,6 +5,8 @@
   "scripts": {
     "build": "pnpm -r run build",
     "test": "vitest run",
+    "test:bench": "pnpm run test:bench:core",
+    "test:bench:core": "pnpm --filter @sigil-security/core run bench",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",

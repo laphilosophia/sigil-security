@@ -1152,6 +1152,13 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 | One-shot validation (with cache lookup) | < 80µs  |
 | base64url encode/decode                 | < 5µs   |
 
+**Current benchmark evidence (focused core pass):**
+
+- `vitest bench` harness exists for `@sigil-security/core` and is runnable via `pnpm run test:bench`.
+- Local baseline currently meets the target for token generation, token validation, HMAC sign/verify, one-shot validation, and base64url encode/decode.
+- HKDF now has a split reading: warm cached derivation meets the target budget, while cold first-derivation remains above it in the current local baseline.
+- `client` and `ops` benchmark coverage is intentionally deferred to a later focused PR.
+
 ### 6.4 Cross-Runtime Tests
 
 | Runtime | Version    | Focus                   |
@@ -1176,10 +1183,12 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 - [ ] Boundary value tests (TTL, grace window, keyring)
 - [ ] Side-channel verification tests
 - [ ] Key management tests (rotation, compromise, domain isolation)
-- [ ] Benchmark tests with vitest bench
+- [x] Benchmark tests with vitest bench
 - [ ] Cross-runtime CI (Node, Bun, Deno)
 - [ ] Integration tests (end-to-end flows)
 - [ ] All tests pass on CI
+
+Benchmark follow-up still remains for cross-runtime baselines, cold HKDF optimization/investigation, and `client`/`ops` perf coverage.
 
 ---
 
