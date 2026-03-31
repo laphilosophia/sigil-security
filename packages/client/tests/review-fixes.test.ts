@@ -7,6 +7,7 @@ import {
 } from '../src/index.js'
 import type {
   EventWindowLike,
+  LeaderCoordinator,
   StorageLike,
   SyncChannel,
   TimerWindowLike,
@@ -52,6 +53,18 @@ class FakeWindow implements EventWindowLike, TimerWindowLike {
   clearInterval(_handle: unknown): void {}
 }
 
+function createImmediateLeaderCoordinator(): LeaderCoordinator {
+  return {
+    async runAsLeader<T>(task: () => Promise<T>) {
+      return {
+        executed: true as const,
+        value: await task(),
+      }
+    },
+    close(): void {},
+  }
+}
+
 afterEach(() => {
   Object.defineProperty(globalThis, 'location', {
     value: originalLocation,
@@ -89,13 +102,7 @@ describe('client review fixes', () => {
         subscribe: vi.fn(() => (): void => undefined),
         close: vi.fn(),
       },
-      leaderCoordinator: {
-        runAsLeader: vi.fn(async <T,>(task: () => Promise<T>) => ({
-          executed: true,
-          value: await task(),
-        })),
-        close: vi.fn(),
-      },
+      leaderCoordinator: createImmediateLeaderCoordinator(),
       tokenTTLMs: 1_000,
       now: (): number => 900,
       refreshIntervalMs: 0,
@@ -120,13 +127,7 @@ describe('client review fixes', () => {
         subscribe: vi.fn(() => (): void => undefined),
         close: vi.fn(),
       },
-      leaderCoordinator: {
-        runAsLeader: vi.fn(async <T,>(task: () => Promise<T>) => ({
-          executed: true,
-          value: await task(),
-        })),
-        close: vi.fn(),
-      },
+      leaderCoordinator: createImmediateLeaderCoordinator(),
       tokenEndpointPath: '//attacker.example/token',
       tokenTTLMs: 1_000,
       now: (): number => 900,
@@ -152,13 +153,7 @@ describe('client review fixes', () => {
         subscribe: vi.fn(() => (): void => undefined),
         close: vi.fn(),
       },
-      leaderCoordinator: {
-        runAsLeader: vi.fn(async <T,>(task: () => Promise<T>) => ({
-          executed: true,
-          value: await task(),
-        })),
-        close: vi.fn(),
-      },
+      leaderCoordinator: createImmediateLeaderCoordinator(),
       tokenEndpointPath: 'javascript:alert(1)',
       tokenTTLMs: 1_000,
       now: (): number => 900,
@@ -204,7 +199,7 @@ describe('client review fixes', () => {
       close(): void {},
     }
     const fetch = vi.fn(async () => new Response(JSON.stringify(freshState)))
-    const leaderCoordinator = {
+    const leaderCoordinator: LeaderCoordinator = {
       async runAsLeader<T>(_task: () => Promise<T>) {
         tokenStore.write(freshState)
         return { executed: false } as const
@@ -247,13 +242,7 @@ describe('client review fixes', () => {
         subscribe: vi.fn(() => (): void => undefined),
         close: vi.fn(),
       },
-      leaderCoordinator: {
-        runAsLeader: vi.fn(async <T,>(task: () => Promise<T>) => ({
-          executed: true,
-          value: await task(),
-        })),
-        close: vi.fn(),
-      },
+      leaderCoordinator: createImmediateLeaderCoordinator(),
       tokenEndpointPath: `https://example.com${DEFAULT_TOKEN_ENDPOINT_PATH}`,
       tokenTTLMs: 1_000,
       now: (): number => 900,

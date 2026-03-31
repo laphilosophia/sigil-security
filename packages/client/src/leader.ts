@@ -38,9 +38,6 @@ export function createLeaderCoordinator(config?: {
     | undefined
   const locks: LockManagerLike | undefined = config?.locks ?? navigatorLike?.locks
   let closed = false
-  // A single in-flight slot deduplicates concurrent refreshes for the same coordinator
-  // instance. The cast is intentional because callers provide the matching task/result type.
-  let inFlight: Promise<LeaderResult<unknown>> | null = null
 
   return {
     async runAsLeader<T>(task: () => Promise<T>): Promise<LeaderResult<T>> {
@@ -48,24 +45,11 @@ export function createLeaderCoordinator(config?: {
         throw new Error('Leader coordinator is closed')
       }
 
-      if (inFlight !== null) {
-        return inFlight as Promise<LeaderResult<T>>
-      }
-
-      const operation = runWithOptionalLock(locks, lockName, task)
-
-      inFlight = operation as Promise<LeaderResult<unknown>>
-
-      try {
-        return await operation
-      } finally {
-        inFlight = null
-      }
+      return runWithOptionalLock(locks, lockName, task)
     },
 
     close(): void {
       closed = true
-      inFlight = null
     },
   }
 }

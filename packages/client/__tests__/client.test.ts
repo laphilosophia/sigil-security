@@ -9,6 +9,7 @@ import {
 import type {
   BroadcastChannelLike,
   EventWindowLike,
+  LeaderCoordinator,
   LockManagerLike,
   StorageLike,
   TimerWindowLike,
@@ -107,6 +108,17 @@ class FakeBroadcastChannel implements BroadcastChannelLike {
   }
 }
 
+function createImmediateLeaderCoordinator(): LeaderCoordinator {
+  return {
+    async runAsLeader<T>(task: () => Promise<T>) {
+      return {
+        executed: true as const,
+        value: await task(),
+      }
+    },
+    close: vi.fn(),
+  }
+}
 class FakeLockManager implements LockManagerLike {
   private readonly held = new Set<string>()
 
@@ -166,13 +178,7 @@ describe('client package', () => {
       subscribe: vi.fn(() => (): void => undefined),
       close: vi.fn(),
     }
-    const leaderCoordinator = {
-      runAsLeader: vi.fn(async <T,>(task: () => Promise<T>) => ({
-        executed: true,
-        value: await task(),
-      })),
-      close: vi.fn(),
-    }
+    const leaderCoordinator = createImmediateLeaderCoordinator()
     const controller = createRefreshController({
       fetch: vi.fn(async () => new Response(JSON.stringify({
         token: 'fresh',
@@ -374,4 +380,5 @@ describe('client package', () => {
     expect(fakeWindow.cleared).toHaveLength(1)
   })
 })
+
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createStructuredLogger, createTelemetryMiddleware } from '../src/index.js'
+import type { StructuredLogEntry } from '../src/index.js'
 import type { SigilInstance } from '@sigil-security/runtime'
 
 function createSigilStub(): SigilInstance {
@@ -61,7 +62,7 @@ function createSigilStub(): SigilInstance {
 
 describe('ops review fixes', () => {
   it('should redact token-like keys beyond the exact token name', () => {
-    const entries: Array<{ readonly context?: Readonly<Record<string, unknown>> }> = []
+    const entries: StructuredLogEntry[] = []
     const logger = createStructuredLogger({
       sink: (entry): void => {
         entries.push(entry)
