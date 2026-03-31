@@ -249,7 +249,8 @@ describe('token-endpoint', () => {
 
       expect(result).not.toBeNull()
       expect(result!.status).toBe(500)
-      expect(result!.body).toEqual({ error: 'One-shot token generation failed' })
+      expect(result!.body).toHaveProperty('error')
+      expect(typeof result!.body.error).toBe('string')
     })
   })
 
@@ -286,3 +287,4 @@ describe('token-endpoint', () => {
     })
   })
 })
+

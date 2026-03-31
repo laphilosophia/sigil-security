@@ -1,14 +1,7 @@
 import { readFile } from 'node:fs/promises'
+import { coverageThresholds } from './coverage-thresholds.mjs'
 
 const coverageSummaryPath = new URL('../coverage/coverage-summary.json', import.meta.url)
-
-const thresholds = {
-  core: { lines: 95, branches: 90 },
-  policy: { lines: 90, branches: 85 },
-  runtime: { lines: 85, branches: 80 },
-  client: { lines: 85, branches: 80 },
-  ops: { lines: 80, branches: 75 },
-}
 
 function normalizePath(filePath) {
   return filePath.replaceAll('\\', '/')
@@ -65,7 +58,7 @@ const fileEntries = Object.entries(parsedSummary).filter(([key]) => key !== 'tot
 
 const failures = []
 
-for (const [pkg, target] of Object.entries(thresholds)) {
+for (const [pkg, target] of Object.entries(coverageThresholds)) {
   const packageEntries = fileEntries
     .filter(([filePath]) => isPackageSourcePath(filePath, pkg))
     .map(([, metrics]) => metrics)

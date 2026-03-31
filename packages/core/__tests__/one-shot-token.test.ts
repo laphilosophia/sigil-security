@@ -16,12 +16,18 @@ import {
   ACTION_SIZE,
   MAC_SIZE,
 } from '../src/types.js'
-import { fromBase64Url } from '../src/encoding.js'
+import { fromBase64Url, toBase64Url } from '../src/encoding.js'
 
 describe('one-shot-token', () => {
   const provider = new WebCryptoCryptoProvider()
   const masterSecret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
   const action = 'POST:/api/account/delete'
+
+  function flipTokenByte(token: string, byteOffset: number): string {
+    const raw = fromBase64Url(token)
+    raw[byteOffset] = (raw[byteOffset] ?? 0) ^ 0xff
+    return toBase64Url(raw)
+  }
 
   describe('computeAction', () => {
     it('should produce 32-byte action hash', async () => {
@@ -476,4 +482,64 @@ describe('one-shot-token', () => {
       }
     })
   })
+  describe('hardening coverage', () => {
+    it('should reject a one-shot token with a modified payload and original MAC', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'oneshot')
+      const key = getActiveKey(keyring)!
+      const nonceCache = createNonceCache()
+      const now = Date.now()
+      const result = await generateOneShotToken(provider, key, action, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (!result.success) return
+
+      const tamperedToken = flipTokenByte(result.token, 10)
+      const validation = await validateOneShotToken(
+        provider,
+        key,
+        tamperedToken,
+        action,
+        nonceCache,
+        undefined,
+        undefined,
+        now,
+      )
+
+      expect(validation).toEqual({ valid: false, reason: 'invalid_mac' })
+    })
+
+    it('should reject zero-padded one-shot tokens', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'oneshot')
+      const key = getActiveKey(keyring)!
+      const nonceCache = createNonceCache()
+      const zeroPaddedToken = toBase64Url(new Uint8Array(ONESHOT_RAW_SIZE))
+
+      const validation = await validateOneShotToken(provider, key, zeroPaddedToken, action, nonceCache)
+
+      expect(validation).toEqual({ valid: false, reason: 'invalid_mac' })
+    })
+
+    it('should reject randomized one-shot inputs without throwing', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'oneshot')
+      const key = getActiveKey(keyring)!
+
+      for (let index = 0; index < 32; index += 1) {
+        const candidate = toBase64Url(globalThis.crypto.getRandomValues(new Uint8Array(17 + index)))
+        const validation = await validateOneShotToken(provider, key, candidate, action, createNonceCache())
+        expect(validation.valid).toBe(false)
+      }
+    })
+
+    it('should reject unicode edge-case one-shot inputs', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'oneshot')
+      const key = getActiveKey(keyring)!
+      const candidates = ['🔥', '令和', 'a\u0000b', 'e\u0301', '\ud83d', '\u0000']
+
+      for (const candidate of candidates) {
+        const validation = await validateOneShotToken(provider, key, candidate, action, createNonceCache())
+        expect(validation.valid).toBe(false)
+      }
+    })
+  })
 })
+
