@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createSigil } from '../src/sigil.js'
-import { handleTokenEndpoint } from '../src/token-endpoint.js'
+import { createTokenEndpointError, handleTokenEndpoint } from '../src/token-endpoint.js'
 import type { SigilInstance } from '../src/types.js'
 
 describe('token-endpoint', () => {
@@ -229,6 +229,29 @@ describe('token-endpoint', () => {
       expect(result).not.toBeNull()
       expect(result!.status).toBe(200)
     })
+
+    it('should return a 500 when one-shot generation fails', async () => {
+      const failingSigil = {
+        config: { oneShotEnabled: true },
+        validateToken: async () => ({ valid: true as const }),
+        generateOneShotToken: async () => ({ success: false as const, reason: 'failed' }),
+      } as unknown as SigilInstance
+
+      const result = await handleTokenEndpoint(
+        failingSigil,
+        'POST',
+        '/api/csrf/one-shot',
+        { action: 'POST:/api/delete' },
+        '/api/csrf/token',
+        '/api/csrf/one-shot',
+        'valid-csrf-token',
+      )
+
+      expect(result).not.toBeNull()
+      expect(result!.status).toBe(500)
+      expect(result!.body).toHaveProperty('error')
+      expect(typeof result!.body.error).toBe('string')
+    })
   })
 
   describe('one-shot disabled', () => {
@@ -252,4 +275,16 @@ describe('token-endpoint', () => {
       expect(result).toBeNull()
     })
   })
+
+  describe('createTokenEndpointError', () => {
+    it('should mirror the standard expired-token error response', () => {
+      expect(createTokenEndpointError(true)).toEqual({
+        handled: true,
+        status: 403,
+        body: { error: 'CSRF validation failed' },
+        headers: { 'X-CSRF-Token-Expired': 'true' },
+      })
+    })
+  })
 })
+

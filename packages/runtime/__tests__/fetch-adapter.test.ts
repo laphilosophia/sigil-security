@@ -88,6 +88,50 @@ describe('fetch-adapter', () => {
       expect(body).toEqual({ ok: true })
     })
 
+    it('should allow POST with valid token in form body', async () => {
+      const gen = await sigil.generateToken()
+      expect(gen.success).toBe(true)
+      if (!gen.success) return
+
+      const handler = createFetchMiddleware(sigil, baseHandler)
+      const request = new Request('https://example.com/api/data', {
+        method: 'POST',
+        headers: {
+          'origin': 'https://example.com',
+          'sec-fetch-site': 'same-origin',
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: `csrf_token=${encodeURIComponent(gen.token)}&data=test`,
+      })
+
+      const response = await handler(request)
+      expect(response.status).toBe(200)
+
+      const body = (await response.json()) as Record<string, unknown>
+      expect(body).toEqual({ ok: true })
+    })
+
+    it('should fall back to header token when JSON body parsing fails', async () => {
+      const gen = await sigil.generateToken()
+      expect(gen.success).toBe(true)
+      if (!gen.success) return
+
+      const handler = createFetchMiddleware(sigil, baseHandler)
+      const request = new Request('https://example.com/api/data', {
+        method: 'POST',
+        headers: {
+          'origin': 'https://example.com',
+          'sec-fetch-site': 'same-origin',
+          'content-type': 'application/json',
+          'x-csrf-token': gen.token,
+        },
+        body: '{"invalidJson":',
+      })
+
+      const response = await handler(request)
+      expect(response.status).toBe(200)
+    })
+
     it('should skip excluded paths', async () => {
       const handler = createFetchMiddleware(sigil, baseHandler, {
         excludePaths: ['/health'],
@@ -148,6 +192,43 @@ describe('fetch-adapter', () => {
 
       const body = (await response.json()) as Record<string, unknown>
       expect(body).toHaveProperty('token')
+    })
+
+    it('should handle relative token endpoint paths', async () => {
+      const handler = createFetchTokenEndpoint(sigil)
+      const request = {
+        method: 'GET',
+        url: '/api/csrf/token?relative=true',
+        headers: new Headers(),
+      } as unknown as Request
+
+      const response = await handler(request)
+      expect(response.status).toBe(200)
+    })
+
+    it('should reject malformed one-shot bodies with a 400 response', async () => {
+      const oneShotSigil = await createSigil({
+        masterSecret,
+        allowedOrigins: ['https://example.com'],
+        oneShotEnabled: true,
+      })
+      const gen = await oneShotSigil.generateToken()
+      expect(gen.success).toBe(true)
+      if (!gen.success) return
+
+      const handler = createFetchTokenEndpoint(oneShotSigil)
+      const request = new Request('https://example.com/api/csrf/one-shot', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-csrf-token': gen.token,
+        },
+        body: '{"action":',
+      })
+
+      const response = await handler(request)
+      expect(response.status).toBe(400)
+      expect(await response.json()).toEqual({ error: 'Request body required' })
     })
 
     it('should return 404 for non-token paths', async () => {

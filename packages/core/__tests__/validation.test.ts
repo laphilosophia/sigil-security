@@ -4,11 +4,18 @@ import { createKeyring, getActiveKey, rotateKey } from '../src/key-manager.js'
 import { generateToken } from '../src/token.js'
 import { validateToken, validateTTL, constantTimeEqual } from '../src/validation.js'
 import { computeContext } from '../src/context.js'
-import { DEFAULT_TOKEN_TTL_MS, DEFAULT_GRACE_WINDOW_MS } from '../src/types.js'
+import { DEFAULT_TOKEN_TTL_MS, DEFAULT_GRACE_WINDOW_MS, TOKEN_RAW_SIZE } from '../src/types.js'
+import { fromBase64Url, toBase64Url } from '../src/encoding.js'
 
 describe('validation', () => {
   const provider = new WebCryptoCryptoProvider()
   const masterSecret = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
+
+  function flipTokenByte(token: string, byteOffset: number): string {
+    const raw = fromBase64Url(token)
+    raw[byteOffset] = (raw[byteOffset] ?? 0) ^ 0xff
+    return toBase64Url(raw)
+  }
 
   describe('validateToken', () => {
     it('should validate a freshly generated token', async () => {
@@ -378,4 +385,128 @@ describe('validation', () => {
       expect(constantTimeEqual(a, b)).toBe(false)
     })
   })
+  describe('hardening coverage', () => {
+    it('should allow validating the same regular token multiple times within TTL', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const key = getActiveKey(keyring)!
+      const now = Date.now()
+      const result = await generateToken(provider, key, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (!result.success) return
+
+      const firstValidation = await validateToken(provider, keyring, result.token, undefined, undefined, undefined, now)
+      const secondValidation = await validateToken(provider, keyring, result.token, undefined, undefined, undefined, now)
+
+      expect(firstValidation).toEqual({ valid: true })
+      expect(secondValidation).toEqual({ valid: true })
+    })
+
+    it('should reject a regular token with a modified payload and original MAC', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const key = getActiveKey(keyring)!
+      const now = Date.now()
+      const result = await generateToken(provider, key, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (!result.success) return
+
+      const tamperedToken = flipTokenByte(result.token, 5)
+      const validation = await validateToken(provider, keyring, tamperedToken, undefined, undefined, undefined, now)
+
+      expect(validation).toEqual({ valid: false, reason: 'invalid_mac' })
+    })
+
+    it('should reject zero-padded regular tokens', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const zeroPaddedToken = toBase64Url(new Uint8Array(TOKEN_RAW_SIZE))
+
+      const validation = await validateToken(provider, keyring, zeroPaddedToken)
+
+      expect(validation).toEqual({ valid: false, reason: 'invalid_mac' })
+    })
+
+    it('should reject randomized regular-token inputs without throwing', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+
+      for (let index = 0; index < 32; index += 1) {
+        const candidate = toBase64Url(globalThis.crypto.getRandomValues(new Uint8Array(13 + index)))
+        const validation = await validateToken(provider, keyring, candidate)
+        expect(validation.valid).toBe(false)
+      }
+    })
+
+    it('should reject unicode edge-case regular-token inputs', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const candidates = ['🔥', '令和', 'a\u0000b', 'e\u0301', '\ud83d', '\u0000']
+
+      for (const candidate of candidates) {
+        const validation = await validateToken(provider, keyring, candidate)
+        expect(validation.valid).toBe(false)
+      }
+    })
+
+    it('should accept a token exactly at the end of the grace window', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const key = getActiveKey(keyring)!
+      const tokenTime = 1_700_000_000_000
+      const result = await generateToken(provider, key, undefined, undefined, tokenTime)
+
+      expect(result.success).toBe(true)
+      if (!result.success) return
+
+      const validation = await validateToken(
+        provider,
+        keyring,
+        result.token,
+        undefined,
+        DEFAULT_TOKEN_TTL_MS,
+        DEFAULT_GRACE_WINDOW_MS,
+        tokenTime + DEFAULT_TOKEN_TTL_MS + DEFAULT_GRACE_WINDOW_MS,
+      )
+
+      expect(validation).toEqual({ valid: true })
+    })
+
+    it('should reject a token 1ms past the grace-window boundary', async () => {
+      const keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const key = getActiveKey(keyring)!
+      const tokenTime = 1_700_000_000_000
+      const result = await generateToken(provider, key, undefined, undefined, tokenTime)
+
+      expect(result.success).toBe(true)
+      if (!result.success) return
+
+      const validation = await validateToken(
+        provider,
+        keyring,
+        result.token,
+        undefined,
+        DEFAULT_TOKEN_TTL_MS,
+        DEFAULT_GRACE_WINDOW_MS,
+        tokenTime + DEFAULT_TOKEN_TTL_MS + DEFAULT_GRACE_WINDOW_MS + 1,
+      )
+
+      expect(validation).toEqual({ valid: false, reason: 'expired' })
+    })
+
+    it('should reject a token after its original kid is evicted from the keyring', async () => {
+      let keyring = await createKeyring(provider, masterSecret, 1, 'csrf')
+      const originalKey = getActiveKey(keyring)!
+      const now = Date.now()
+      const result = await generateToken(provider, originalKey, undefined, undefined, now)
+
+      expect(result.success).toBe(true)
+      if (!result.success) return
+
+      keyring = await rotateKey(keyring, provider, masterSecret, 2)
+      keyring = await rotateKey(keyring, provider, masterSecret, 3)
+      keyring = await rotateKey(keyring, provider, masterSecret, 4)
+
+      const validation = await validateToken(provider, keyring, result.token, undefined, undefined, undefined, now)
+
+      expect(validation).toEqual({ valid: false, reason: 'invalid_mac' })
+    })
+  })
 })
+

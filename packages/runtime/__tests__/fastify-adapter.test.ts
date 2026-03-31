@@ -186,6 +186,39 @@ describe('fastify-adapter', () => {
       expect(reply._body).toHaveProperty('expiresAt')
     })
 
+    it('should generate one-shot tokens via registered POST route', async () => {
+      const oneShotSigil = await createSigil({
+        masterSecret,
+        allowedOrigins: ['https://example.com'],
+        oneShotEnabled: true,
+      })
+      const gen = await oneShotSigil.generateToken()
+      expect(gen.success).toBe(true)
+      if (!gen.success) return
+
+      const plugin = createFastifyPlugin(oneShotSigil)
+      const fastify = mockFastifyInstance()
+      const done = vi.fn()
+
+      plugin(fastify, undefined, done)
+
+      const req = mockRequest({
+        method: 'POST',
+        url: '/api/csrf/one-shot',
+        headers: {
+          'x-csrf-token': gen.token,
+        },
+        body: { action: 'POST:/api/delete' },
+      })
+      const reply = mockReply()
+
+      await fastify.callRoute('POST', '/api/csrf/one-shot', req, reply)
+
+      expect(reply._status).toBe(200)
+      expect(reply._body).toHaveProperty('token')
+      expect(reply._body).toHaveProperty('action', 'POST:/api/delete')
+    })
+
     it('should allow GET requests through preHandler hook', async () => {
       const plugin = createFastifyPlugin(sigil)
       const fastify = mockFastifyInstance()
