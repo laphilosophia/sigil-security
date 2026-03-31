@@ -11,8 +11,6 @@ target/
 # IDE
 .idea/
 .vscode/
-.cursor/
-.cursor
 *.swp
 *.swo
 
