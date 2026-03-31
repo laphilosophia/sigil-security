@@ -1,7 +1,7 @@
 {
   "name": "@sigil-security/ops",
   "version": "1.0.1",
-  "description": "Telemetry, monitoring, and anomaly detection — optional observability layer",
+  "description": "Experimental telemetry, monitoring, and anomaly detection — optional observability layer",
   "type": "module",
   "exports": {
     ".": {
@@ -23,7 +23,9 @@
   ],
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm run typecheck:src && pnpm run typecheck:tests",
+    "typecheck:src": "tsc --noEmit --project tsconfig.typecheck.json",
+    "typecheck:tests": "tsc --noEmit --project tsconfig.json"
   },
   "keywords": [
     "csrf",
@@ -46,6 +48,7 @@
     "typescript": "^5.7.0"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "tag": "experimental"
   }
 }
