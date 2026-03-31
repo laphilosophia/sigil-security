@@ -228,7 +228,7 @@ describe('fetch-adapter', () => {
 
       const response = await handler(request)
       expect(response.status).toBe(400)
-      expect(await response.json()).toEqual({ error: 'Request body required' })
+      expect(await response.json()).toEqual({ error: 'CSRF validation failed' })
     })
 
     it('should return 404 for non-token paths', async () => {

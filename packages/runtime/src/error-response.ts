@@ -24,6 +24,31 @@ export interface ErrorResponse {
 }
 
 /**
+ * Creates a uniform client-facing error response.
+ *
+ * The body is intentionally generic regardless of the specific failure mode.
+ * Status codes may still differ so adapters can preserve HTTP semantics.
+ *
+ * @param status - HTTP status code to return
+ * @param expired - Whether the response should include the token-expired hint
+ */
+export function createClientErrorResponse(
+  status: number,
+  expired: boolean = false,
+): ErrorResponse {
+  const headers: Record<string, string> = {}
+  if (expired) {
+    headers[EXPIRED_HEADER_NAME] = 'true'
+  }
+
+  return {
+    status,
+    body: { error: CSRF_FAILURE_MESSAGE },
+    headers,
+  }
+}
+
+/**
  * Creates a uniform 403 error response.
  *
  * - Always returns `403 { error: "CSRF validation failed" }`
@@ -34,15 +59,7 @@ export interface ErrorResponse {
  * @returns Framework-agnostic error response
  */
 export function createErrorResponse(expired: boolean): ErrorResponse {
-  const headers: Record<string, string> = {}
-  if (expired) {
-    headers[EXPIRED_HEADER_NAME] = 'true'
-  }
-  return {
-    status: 403,
-    body: { error: CSRF_FAILURE_MESSAGE },
-    headers,
-  }
+  return createClientErrorResponse(403, expired)
 }
 
 /**

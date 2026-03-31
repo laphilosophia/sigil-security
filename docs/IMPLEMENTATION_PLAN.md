@@ -1,7 +1,7 @@
 # Sigil-Security: Implementation Plan
 
-**Version:** 1.1 (merged)
-**Status:** Active
+**Version:** 2.0
+**Status:** Released (`v2.0.0`)
 **Timeline:** 10-14 weeks (core) + 2-3 weeks (model generalization)
 **Created:** 2026-02-08
 
@@ -29,14 +29,15 @@
 
 ## Project Status
 
-The repository is now an **implemented monorepo** with active follow-up work. Current reality:
+The repository is now an **implemented and released monorepo**. Current reality:
 
-- `@sigil-security/core`, `@sigil-security/policy`, and `@sigil-security/runtime` are implemented and verified locally.
-- `@sigil-security/client` and `@sigil-security/ops` now contain implementation code and tests, but remain explicitly **experimental** until Phase 7 release alignment and package-promotion review are complete.
-- CI/CD, package manifests, TypeScript configuration, and workspace tests all exist in-repo.
+- `@sigil-security/core`, `@sigil-security/policy`, and `@sigil-security/runtime` are implemented, tested, and published as the stable Sigil v2 surface.
+- `@sigil-security/client` and `@sigil-security/ops` contain implementation code and tests and are published, but remain explicitly **experimental** pending package-promotion review.
+- CI/CD, package manifests, TypeScript configuration, coverage gates, and workspace tests all exist in-repo.
 - Oak and Hono runtime adapters remain intentionally disabled pending separate security remediation.
+- `v2.0.0` has been published to npm and the repository release flow has been exercised successfully.
 
-**Remaining work is primarily release alignment, hosted CI confirmation, package-promotion decisions for `client` and `ops`, and targeted performance follow-up (cold HKDF optimization investigation and optional client/ops performance coverage).**
+**Remaining work is now primarily post-release documentation expansion, example applications, package-promotion decisions for `client` and `ops`, targeted performance follow-up, and longer-horizon model-generalization work.**
 
 ---
 
@@ -1041,7 +1042,7 @@ async function requestOneShotToken(action: string): Promise<string> {
 - [x] Tests with mock BroadcastChannel/localStorage
 - [x] Race condition tests (multi-tab simulation)
 - [x] Refresh window edge case tests
-- [ ] Decide whether to keep package experimental or promote to GA during Phase 7 release alignment
+- [x] Phase 7 release alignment completed with package still marked experimental
 
 ---
 
@@ -1109,7 +1110,7 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 - [x] `src/index.ts` — Public API
 - [x] Tests with mock metrics collector
 - [x] Anomaly detection threshold tests
-- [ ] Decide whether to keep package experimental or promote to GA during Phase 7 release alignment
+- [x] Phase 7 release alignment completed with package still marked experimental
 
 ---
 
@@ -1186,7 +1187,7 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 - [x] Benchmark tests with vitest bench
 - [x] Cross-runtime CI (Node, Bun, Deno)
 - [x] Integration tests (end-to-end flows)
-- [ ] All tests pass on CI
+- [x] All tests pass on CI
 
 Package-specific coverage enforcement and a cross-runtime smoke workflow now exist in-repo. Benchmark follow-up still remains for cold HKDF optimization/investigation and optional `client`/`ops` perf coverage.
 
@@ -1194,7 +1195,7 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 
 ## Phase 7: Documentation & Release
 
-**Goal:** API docs, examples, and npm publish readiness.
+**Goal:** API docs, examples, and post-release documentation maturity.
 **Dependencies:** Phase 6 complete
 
 ### 7.1 API Documentation
@@ -1216,7 +1217,7 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 - npm publish automation (GitHub Actions)
 - Package provenance (npm provenance statements)
 - `CHANGELOG.md` generation
-- Versioning target: `1.x` for stable `core` / `policy` / `runtime`, with `client` and `ops` remaining experimental until explicitly promoted
+- Versioning target: stable `core` / `policy` / `runtime`, with `client` and `ops` remaining experimental until explicitly promoted
 
 ### 7.4 Documentation Updates
 
@@ -1230,11 +1231,19 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 - [ ] TSDoc on all exported APIs
 - [ ] API reference generated (typedoc)
 - [ ] Usage examples (at least Express + Fastify)
-- [ ] Changesets configuration
-- [ ] npm publish workflow
-- [ ] `CHANGELOG.md`
-- [ ] `README.md` updated with quickstart
+- [x] Changesets configuration
+- [x] npm publish workflow
+- [x] `CHANGELOG.md`
+- [x] `README.md` updated with quickstart
 - [ ] Security FAQ
+
+### Post-v2 Focus
+
+- expand package-level API documentation and TSDoc coverage
+- add concrete example applications for Express and Fastify
+- decide whether `@sigil-security/client` and `@sigil-security/ops` stay experimental or graduate to stable
+- investigate cold HKDF startup cost and optional `client` / `ops` performance coverage
+- continue Phase 8 model-generalization validation and documentation
 
 ---
 

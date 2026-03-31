@@ -31,6 +31,8 @@ class MemoryStorage implements StorageLike {
 
 const originalLocation = globalThis.location
 const originalNavigator = globalThis.navigator
+const originalAddEventListener = globalThis.addEventListener
+const originalRemoveEventListener = globalThis.removeEventListener
 
 class FakeWindow implements EventWindowLike, TimerWindowLike {
   intervalHandler: (() => void) | null = null
@@ -73,6 +75,16 @@ afterEach(() => {
   })
   Object.defineProperty(globalThis, 'navigator', {
     value: originalNavigator,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'addEventListener', {
+    value: originalAddEventListener,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'removeEventListener', {
+    value: originalRemoveEventListener,
     writable: true,
     configurable: true,
   })
@@ -175,6 +187,34 @@ describe('client review fixes', () => {
     const client = createSigilClient({
       storage: new MemoryStorage(),
       window: new FakeWindow(),
+      fetch: vi.fn(async () => new Response('{}')),
+      autoStart: false,
+    })
+
+    expect(client.getTokenState()).toBeNull()
+
+    client.destroy()
+  })
+
+  it('should tolerate missing window event APIs when timer APIs still exist', () => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(globalThis, 'addEventListener', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(globalThis, 'removeEventListener', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    })
+
+    const client = createSigilClient({
+      storage: new MemoryStorage(),
       fetch: vi.fn(async () => new Response('{}')),
       autoStart: false,
     })

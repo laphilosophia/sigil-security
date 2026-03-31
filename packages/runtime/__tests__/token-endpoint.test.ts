@@ -152,6 +152,7 @@ describe('token-endpoint', () => {
 
       expect(result).not.toBeNull()
       expect(result!.status).toBe(400)
+      expect(result!.body).toEqual({ error: 'CSRF validation failed' })
     })
 
     it('should reject empty action parameter', async () => {
@@ -171,6 +172,7 @@ describe('token-endpoint', () => {
 
       expect(result).not.toBeNull()
       expect(result!.status).toBe(400)
+      expect(result!.body).toEqual({ error: 'CSRF validation failed' })
     })
 
     it('should reject non-string action parameter', async () => {
@@ -190,6 +192,7 @@ describe('token-endpoint', () => {
 
       expect(result).not.toBeNull()
       expect(result!.status).toBe(400)
+      expect(result!.body).toEqual({ error: 'CSRF validation failed' })
     })
 
     it('should reject null body', async () => {
@@ -209,6 +212,7 @@ describe('token-endpoint', () => {
 
       expect(result).not.toBeNull()
       expect(result!.status).toBe(400)
+      expect(result!.body).toEqual({ error: 'CSRF validation failed' })
     })
 
     it('should pass optional context bindings', async () => {

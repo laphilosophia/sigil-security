@@ -44,9 +44,28 @@ function resolveWindowLike(
 ): EventWindowLike & TimerWindowLike {
   if (value !== undefined) return value
 
+  if (
+    typeof globalThis.setInterval !== 'function' ||
+    typeof globalThis.clearInterval !== 'function'
+  ) {
+    throw new Error(
+      'Sigil client requires timer APIs or an explicit config.window implementation.',
+    )
+  }
+
+  const addEventListener =
+    typeof globalThis.addEventListener === 'function'
+      ? globalThis.addEventListener.bind(globalThis)
+      : (_name: 'storage', _listener: (event: { readonly key: string | null }) => void): void => {}
+
+  const removeEventListener =
+    typeof globalThis.removeEventListener === 'function'
+      ? globalThis.removeEventListener.bind(globalThis)
+      : (_name: 'storage', _listener: (event: { readonly key: string | null }) => void): void => {}
+
   return {
-    addEventListener: globalThis.addEventListener.bind(globalThis),
-    removeEventListener: globalThis.removeEventListener.bind(globalThis),
+    addEventListener,
+    removeEventListener,
     setInterval: globalThis.setInterval.bind(globalThis),
     clearInterval: globalThis.clearInterval.bind(globalThis),
   }

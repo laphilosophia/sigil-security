@@ -3,6 +3,7 @@
 
 import type { SigilInstance, TokenEndpointResult } from './types.js'
 import {
+  createClientErrorResponse,
   createErrorResponse,
   createTokenResponse,
   createOneShotTokenResponse,
@@ -92,11 +93,12 @@ async function handleRegularTokenGeneration(
   const result = await sigil.generateToken()
 
   if (!result.success) {
+    const errorResponse = createClientErrorResponse(500)
     return {
       handled: true,
-      status: 500,
-      body: { error: 'Token generation failed' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers as Record<string, string>,
     }
   }
 
@@ -118,21 +120,23 @@ async function handleOneShotTokenGeneration(
 ): Promise<TokenEndpointResult> {
   // Validate request body
   if (body === null || body === undefined || typeof body !== 'object') {
+    const errorResponse = createClientErrorResponse(400)
     return {
       handled: true,
-      status: 400,
-      body: { error: 'Request body required' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers as Record<string, string>,
     }
   }
 
   const action = body['action']
   if (typeof action !== 'string' || action === '') {
+    const errorResponse = createClientErrorResponse(400)
     return {
       handled: true,
-      status: 400,
-      body: { error: 'Missing or invalid action parameter' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers as Record<string, string>,
     }
   }
 
@@ -149,11 +153,12 @@ async function handleOneShotTokenGeneration(
   const result = await sigil.generateOneShotToken(action, context)
 
   if (!result.success) {
+    const errorResponse = createClientErrorResponse(500)
     return {
       handled: true,
-      status: 500,
-      body: { error: 'One-shot token generation failed' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers as Record<string, string>,
     }
   }
 

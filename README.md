@@ -33,9 +33,9 @@ Integrity AND Context AND Freshness AND Provenance
 
 | Package | Use it when... | Status |
 | --- | --- | --- |
-| `@sigil-security/runtime` | you want the fastest path to real app integration | production-candidate |
-| `@sigil-security/core` | you need low-level token and key primitives | production-candidate |
-| `@sigil-security/policy` | you want request context policy checks without full runtime orchestration | production-candidate |
+| `@sigil-security/runtime` | you want the fastest path to real app integration | stable |
+| `@sigil-security/core` | you need low-level token and key primitives | stable |
+| `@sigil-security/policy` | you want request context policy checks without full runtime orchestration | stable |
 | `@sigil-security/client` | you need browser-side token lifecycle helpers | experimental |
 | `@sigil-security/ops` | you want telemetry, anomaly signals, and structured logs | experimental |
 

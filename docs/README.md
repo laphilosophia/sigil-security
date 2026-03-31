@@ -9,7 +9,7 @@ Sigil now has two documentation layers:
 
 - [Root README](../README.md): package overview, install, first runtime example
 - [Quickstart](./QUICKSTART.md): fastest path to a working server integration
-- [Implementation Plan](./IMPLEMENTATION_PLAN.md): current project status and remaining phase work
+- [Implementation Plan](./IMPLEMENTATION_PLAN.md): released status, completed phases, and remaining roadmap work
 
 ## Package Guides
 
