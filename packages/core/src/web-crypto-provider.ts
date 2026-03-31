@@ -1,6 +1,7 @@
 // @sigil-security/core — WebCrypto-based CryptoProvider implementation
 
 import type { CryptoProvider } from './crypto-provider.js'
+import { toBase64Url } from './encoding.js'
 
 /**
  * Default CryptoProvider implementation using the WebCrypto API.
@@ -13,6 +14,65 @@ import type { CryptoProvider } from './crypto-provider.js'
  * Zero external dependencies. Works in Node 18+, Bun, Deno, and Edge runtimes.
  */
 export class WebCryptoCryptoProvider implements CryptoProvider {
+  private readonly encoder = new TextEncoder()
+
+  private readonly hkdfBaseKeyCache = new Map<string, Promise<CryptoKey>>()
+
+  private readonly hkdfDerivedKeyCache = new Map<string, Map<string, Map<string, Promise<CryptoKey>>>>()
+
+  private readonly encodedStringCache = new Map<string, BufferSource>()
+
+  private getEncodedString(value: string): BufferSource {
+    const cached = this.encodedStringCache.get(value)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const encoded = this.encoder.encode(value)
+    this.encodedStringCache.set(value, encoded)
+    return encoded
+  }
+
+  private getMasterCacheKey(master: ArrayBuffer): string {
+    return toBase64Url(new Uint8Array(master))
+  }
+
+  private getHkdfBaseKey(masterKey: string, master: ArrayBuffer): Promise<CryptoKey> {
+    const cached = this.hkdfBaseKeyCache.get(masterKey)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const importedKey = globalThis.crypto.subtle
+      .importKey('raw', master, { name: 'HKDF' }, false, ['deriveKey'])
+      .catch((error: unknown) => {
+        this.hkdfBaseKeyCache.delete(masterKey)
+        throw error
+      })
+
+    this.hkdfBaseKeyCache.set(masterKey, importedKey)
+    return importedKey
+  }
+
+  private getDerivedKeyCache(
+    masterKey: string,
+    salt: string,
+  ): Map<string, Promise<CryptoKey>> {
+    let masterCache = this.hkdfDerivedKeyCache.get(masterKey)
+    if (masterCache === undefined) {
+      masterCache = new Map<string, Map<string, Promise<CryptoKey>>>()
+      this.hkdfDerivedKeyCache.set(masterKey, masterCache)
+    }
+
+    let saltCache = masterCache.get(salt)
+    if (saltCache === undefined) {
+      saltCache = new Map<string, Promise<CryptoKey>>()
+      masterCache.set(salt, saltCache)
+    }
+
+    return saltCache
+  }
+
   /**
    * Signs data with HMAC-SHA256 using WebCrypto.
    * Returns full 256-bit (32-byte) MAC, NO truncation.
@@ -39,26 +99,35 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
    * - Output: HMAC-SHA256 key, 256-bit, non-extractable
    */
   async deriveKey(master: ArrayBuffer, salt: string, info: string): Promise<CryptoKey> {
-    const encoder = new TextEncoder()
+    const masterKey = this.getMasterCacheKey(master)
+    const derivedKeyCache = this.getDerivedKeyCache(masterKey, salt)
+    const cached = derivedKeyCache.get(info)
+    if (cached !== undefined) {
+      return cached
+    }
 
-    // Import master as raw key material for HKDF
-    const baseKey = await globalThis.crypto.subtle.importKey('raw', master, { name: 'HKDF' }, false, [
-      'deriveKey',
-    ])
+    const baseKey = await this.getHkdfBaseKey(masterKey, master)
 
-    // Derive HMAC-SHA256 signing key via HKDF
-    return globalThis.crypto.subtle.deriveKey(
-      {
-        name: 'HKDF',
-        hash: 'SHA-256',
-        salt: encoder.encode(salt),
-        info: encoder.encode(info),
-      },
-      baseKey,
-      { name: 'HMAC', hash: 'SHA-256', length: 256 },
-      false,
-      ['sign', 'verify'],
-    )
+    const derivedKey = globalThis.crypto.subtle
+      .deriveKey(
+        {
+          name: 'HKDF',
+          hash: 'SHA-256',
+          salt: this.getEncodedString(salt),
+          info: this.getEncodedString(info),
+        },
+        baseKey,
+        { name: 'HMAC', hash: 'SHA-256', length: 256 },
+        false,
+        ['sign', 'verify'],
+      )
+      .catch((error: unknown) => {
+        derivedKeyCache.delete(info)
+        throw error
+      })
+
+    derivedKeyCache.set(info, derivedKey)
+    return derivedKey
   }
 
   /**
