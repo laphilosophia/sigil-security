@@ -2,6 +2,10 @@
   "private": true,
   "name": "sigil-security",
   "description": "Stateless cryptographic request intent verification primitive",
+  "homepage": "https://github.com/laphilosophia/sigil-security#readme",
+  "bugs": {
+    "url": "https://github.com/laphilosophia/sigil-security/issues"
+  },
   "scripts": {
     "build": "pnpm -r run build",
     "test": "vitest run",

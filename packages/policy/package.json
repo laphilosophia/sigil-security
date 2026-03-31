@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/policy",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Validation policies for request metadata — Fetch Metadata, Origin, context binding",
   "type": "module",
   "exports": {
@@ -33,6 +33,10 @@
     "origin"
   ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/laphilosophia/sigil-security/tree/main/packages/policy#readme",
+  "bugs": {
+    "url": "https://github.com/laphilosophia/sigil-security/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/laphilosophia/sigil-security.git",
@@ -49,3 +53,4 @@
     "access": "public"
   }
 }
+

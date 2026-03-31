@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/ops",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Experimental telemetry, monitoring, and anomaly detection — optional observability layer",
   "type": "module",
   "exports": {
@@ -35,6 +35,10 @@
     "observability"
   ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/laphilosophia/sigil-security/tree/main/packages/ops#readme",
+  "bugs": {
+    "url": "https://github.com/laphilosophia/sigil-security/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/laphilosophia/sigil-security.git",
@@ -52,3 +56,4 @@
     "tag": "experimental"
   }
 }
+

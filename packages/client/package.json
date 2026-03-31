@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/client",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Experimental browser SDK — silent refresh, multi-tab sync, leader election, fetch interceptor",
   "type": "module",
   "exports": {
@@ -36,6 +36,10 @@
     "leader-election"
   ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/laphilosophia/sigil-security/tree/main/packages/client#readme",
+  "bugs": {
+    "url": "https://github.com/laphilosophia/sigil-security/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/laphilosophia/sigil-security.git",
@@ -50,3 +54,4 @@
     "tag": "experimental"
   }
 }
+
