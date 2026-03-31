@@ -1,12 +1,13 @@
 // @sigil-security/runtime — Token endpoint handler
 // Reference: SPECIFICATION.md §3 — Token generation endpoints
 
-import type { SigilInstance, TokenEndpointResult } from './types.js'
 import {
+  createClientErrorResponse,
   createErrorResponse,
-  createTokenResponse,
   createOneShotTokenResponse,
+  createTokenResponse,
 } from './error-response.js'
+import type { SigilInstance, TokenEndpointResult } from './types.js'
 
 /**
  * Handles token generation requests.
@@ -49,11 +50,7 @@ export async function handleTokenEndpoint(
 
   // POST /api/csrf/one-shot → Generate one-shot token
   // Requires a valid regular CSRF token for defense-in-depth
-  if (
-    sigil.config.oneShotEnabled &&
-    path === oneShotEndpointPath &&
-    upperMethod === 'POST'
-  ) {
+  if (sigil.config.oneShotEnabled && path === oneShotEndpointPath && upperMethod === 'POST') {
     // Validate CSRF token before generating one-shot token
     if (csrfTokenValue === undefined || csrfTokenValue === null || csrfTokenValue === '') {
       const errorResponse = createErrorResponse(false)
@@ -61,7 +58,7 @@ export async function handleTokenEndpoint(
         handled: true,
         status: errorResponse.status,
         body: errorResponse.body,
-        headers: errorResponse.headers as Record<string, string>,
+        headers: errorResponse.headers,
       }
     }
 
@@ -72,7 +69,7 @@ export async function handleTokenEndpoint(
         handled: true,
         status: errorResponse.status,
         body: errorResponse.body,
-        headers: errorResponse.headers as Record<string, string>,
+        headers: errorResponse.headers,
       }
     }
 
@@ -86,17 +83,16 @@ export async function handleTokenEndpoint(
 /**
  * Generates a regular CSRF token.
  */
-async function handleRegularTokenGeneration(
-  sigil: SigilInstance,
-): Promise<TokenEndpointResult> {
+async function handleRegularTokenGeneration(sigil: SigilInstance): Promise<TokenEndpointResult> {
   const result = await sigil.generateToken()
 
   if (!result.success) {
+    const errorResponse = createClientErrorResponse(500)
     return {
       handled: true,
-      status: 500,
-      body: { error: 'Token generation failed' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers,
     }
   }
 
@@ -118,21 +114,23 @@ async function handleOneShotTokenGeneration(
 ): Promise<TokenEndpointResult> {
   // Validate request body
   if (body === null || body === undefined || typeof body !== 'object') {
+    const errorResponse = createClientErrorResponse(400)
     return {
       handled: true,
-      status: 400,
-      body: { error: 'Request body required' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers,
     }
   }
 
   const action = body['action']
   if (typeof action !== 'string' || action === '') {
+    const errorResponse = createClientErrorResponse(400)
     return {
       handled: true,
-      status: 400,
-      body: { error: 'Missing or invalid action parameter' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers,
     }
   }
 
@@ -149,11 +147,12 @@ async function handleOneShotTokenGeneration(
   const result = await sigil.generateOneShotToken(action, context)
 
   if (!result.success) {
+    const errorResponse = createClientErrorResponse(500)
     return {
       handled: true,
-      status: 500,
-      body: { error: 'One-shot token generation failed' },
-      headers: {},
+      status: errorResponse.status,
+      body: errorResponse.body,
+      headers: errorResponse.headers,
     }
   }
 
@@ -170,14 +169,12 @@ async function handleOneShotTokenGeneration(
  * Creates a standardized error result for the token endpoint.
  * Used by adapters when they need to produce error responses.
  */
-export function createTokenEndpointError(
-  expired: boolean,
-): TokenEndpointResult {
+export function createTokenEndpointError(expired: boolean): TokenEndpointResult {
   const errorResponse = createErrorResponse(expired)
   return {
     handled: true,
     status: errorResponse.status,
     body: errorResponse.body,
-    headers: errorResponse.headers as Record<string, string>,
+    headers: errorResponse.headers,
   }
 }

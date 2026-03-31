@@ -1,8 +1,8 @@
 # Sigil-Security: Technical Specification
 
-**Version:** 1.0
-**Status:** Production-Ready
-**Scope:** Stateless CSRF Defense Library
+**Version:** 2.0
+**Status:** Released (`v2.0.0`)
+**Scope:** Stateless Cryptographic Request Intent Verification Primitive
 
 ---
 
@@ -16,15 +16,15 @@
 
 # Part I: Core Specification
 
-This document serves as the reference specification for a stateless, cryptographically verifiable, multi-layered CSRF defense library designed for modern browser behavior and multiple runtime targets. It covers application architecture, security model, validation layers, cryptographic preferences, threat model, research references, and development plan.
+This document serves as the reference specification for a stateless, cryptographically verifiable, multi-layered request intent verification primitive designed for modern browser behavior and multiple runtime targets. It covers application architecture, security model, validation layers, cryptographic preferences, threat model, research references, and development plan.
 
 ---
 
 ## 1. Purpose and Scope
 
-The purpose of this project is to produce a CSRF protection library that eliminates the limitations of classical stateful CSRF middleware approaches by using modern browser security signals as the primary validation source, while remaining stateless and cryptographically verifiable. The goal is to provide a framework-agnostic security layer capable of running the same core validation logic across Node.js, Bun, and Deno runtimes.
+The purpose of this project is to produce a request intent verification primitive that improves on classical stateful CSRF middleware approaches by combining cryptographic validation with modern browser security signals while remaining stateless and framework-agnostic. The goal is to provide a runtime-portable security layer capable of running the same core validation logic across Node.js, Bun, and Deno runtimes.
 
-This library is not merely middleware that generates and validates tokens. Modern CSRF defense is a combination of token + browser signals + request context validation. Therefore, the design is based on the principle of multi-layered validation.
+This project is not merely middleware that generates and validates tokens. Modern state-changing request protection is a combination of token + browser signals + request context validation. Therefore, the design is based on the principle of multi-layered validation.
 
 ---
 

@@ -236,7 +236,7 @@ export interface TokenEndpointResult {
   readonly handled: boolean
   readonly status: number
   readonly body: Record<string, unknown>
-  readonly headers: Record<string, string>
+  readonly headers: Readonly<Record<string, string>>
 }
 
 /** One-shot token request body */

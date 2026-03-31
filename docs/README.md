@@ -4,12 +4,15 @@ Sigil now has two documentation layers:
 
 - practical onboarding docs for application developers
 - deeper specification and operations docs for implementers and reviewers
+- human-authored package and API guides where generated docs would be too noisy
 
 ## Start Here
 
 - [Root README](../README.md): package overview, install, first runtime example
 - [Quickstart](./QUICKSTART.md): fastest path to a working server integration
-- [Implementation Plan](./IMPLEMENTATION_PLAN.md): current project status and remaining phase work
+- [Integration Guide](./INTEGRATION_GUIDE.md): comprehensive adoption guide, package choice, patterns, and examples
+- [API Guide](./API_GUIDE.md): human-authored overview of package entry points and public APIs
+- [Implementation Plan](./IMPLEMENTATION_PLAN.md): released status, completed phases, and remaining roadmap work
 
 ## Package Guides
 
@@ -23,6 +26,7 @@ Sigil now has two documentation layers:
 
 - [Boundary Specification](./BOUNDARY_SPECIFICATION.md): non-negotiable layer boundaries
 - [Specification](./SPECIFICATION.md): token model, lifecycle, validation flow
+- [Security FAQ](./SECURITY_FAQ.md): plain-language security boundaries, tradeoffs, and common questions
 - [Operations Manual](./OPERATIONS.md): monitoring, anomaly response, incident handling
 - [Crypto Analysis](./CRYPTO_ANALYSIS.md): WebCrypto choices and constraints
 - [Security Advisories](./SECURITY_ADVISORIES.md): third-party and adapter-related security notes
@@ -43,9 +47,9 @@ Sigil now has two documentation layers:
 
 1. [Boundary Specification](./BOUNDARY_SPECIFICATION.md)
 2. [Specification](./SPECIFICATION.md)
-3. [Operations Manual](./OPERATIONS.md)
-4. [Security Advisories](./SECURITY_ADVISORIES.md)
-5. [Benchmarking](./BENCHMARKING.md)
+3. [Security FAQ](./SECURITY_FAQ.md)
+4. [Operations Manual](./OPERATIONS.md)
+5. [Security Advisories](./SECURITY_ADVISORIES.md)
 
 ### Contributors
 

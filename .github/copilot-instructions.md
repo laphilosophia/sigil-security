@@ -10,7 +10,7 @@ Sigil-Security is a **stateless cryptographic request authenticity primitive** �
 packages/
   core/     → @sigil-security/core      (crypto primitive, stateless, pure — ZERO runtime deps)
   policy/   → @sigil-security/policy    (validation policies: Fetch Metadata, Origin, context binding)
-  runtime/  → @sigil-security/runtime   (framework adapters: Express, Fastify, Hono, Oak, Elysia)
+  runtime/  → @sigil-security/runtime   (framework adapters: Express, Fastify, Elysia, native Fetch)
   ops/      → @sigil-security/ops       (telemetry & monitoring, optional)
   client/   → @sigil-security/client    (browser SDK: refresh, multi-tab sync, leader election)
 ```
