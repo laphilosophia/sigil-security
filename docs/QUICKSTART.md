@@ -134,6 +134,7 @@ const observedSigil = createTelemetryMiddleware(sigil, {
 ## Next Reads
 
 - [Root README](../README.md)
+- [Integration Guide](./INTEGRATION_GUIDE.md)
 - [Runtime package README](../packages/runtime/README.md)
 - [Specification](./SPECIFICATION.md)
 - [Operations Manual](./OPERATIONS.md)

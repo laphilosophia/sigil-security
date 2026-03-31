@@ -86,8 +86,11 @@ core -> policy -> runtime -> client / ops
 ## Documentation
 
 - [Quickstart](./docs/QUICKSTART.md)
+- [Integration Guide](./docs/INTEGRATION_GUIDE.md)
+- [API Guide](./docs/API_GUIDE.md)
 - [Documentation Index](./docs/README.md)
 - [Specification](./docs/SPECIFICATION.md)
+- [Security FAQ](./docs/SECURITY_FAQ.md)
 - [Boundary Specification](./docs/BOUNDARY_SPECIFICATION.md)
 - [Operations Manual](./docs/OPERATIONS.md)
 - [Benchmarking](./docs/BENCHMARKING.md)

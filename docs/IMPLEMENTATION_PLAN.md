@@ -1231,15 +1231,15 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 
 ### Phase 7 Checklist
 
-- [ ] Human-authored API docs for package entry points and common workflows
+- [x] Human-authored API docs for package entry points and common workflows
 - [ ] Critical public factories and adapters have useful inline docs
 - [ ] Usage examples (at least Express + Fastify)
 - [x] Changesets configuration
 - [x] npm publish workflow
 - [x] `CHANGELOG.md`
 - [x] `README.md` updated with quickstart
-- [ ] Security FAQ
-- [ ] Markdown API guide
+- [x] Security FAQ
+- [x] Markdown API guide
 
 ### Post-v2 Focus
 
