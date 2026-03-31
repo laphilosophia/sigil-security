@@ -4,6 +4,7 @@ Sigil now has two documentation layers:
 
 - practical onboarding docs for application developers
 - deeper specification and operations docs for implementers and reviewers
+- human-authored package and API guides where generated docs would be too noisy
 
 ## Start Here
 

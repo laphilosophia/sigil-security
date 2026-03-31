@@ -1195,13 +1195,15 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 
 ## Phase 7: Documentation & Release
 
-**Goal:** API docs, examples, and post-release documentation maturity.
+**Goal:** Human-readable documentation, examples, and post-release documentation maturity.
 **Dependencies:** Phase 6 complete
 
-### 7.1 API Documentation
+### 7.1 Human-Authored API Documentation
 
-- TSDoc comments on all exported functions/types
-- Generated API reference (typedoc)
+- Human-readable package guides that explain what each public surface is for
+- Entry-point focused API docs for factories, adapters, and common workflows
+- Markdown API reference is acceptable where it explains usage better than generated output
+- Inline doc comments should exist on critical public entry points, but generated API docs are optional
 
 ### 7.2 Usage Examples
 
@@ -1224,22 +1226,24 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 - `README.md` — installation, quickstart, usage examples
 - `CONTRIBUTING.md` — updated with dev setup commands
 - Security FAQ — replay, XSS, stateless tradeoffs
+- Markdown API guide — package entry points and common integration patterns
 - Migration guide (for future versions)
 
 ### Phase 7 Checklist
 
-- [ ] TSDoc on all exported APIs
-- [ ] API reference generated (typedoc)
+- [ ] Human-authored API docs for package entry points and common workflows
+- [ ] Critical public factories and adapters have useful inline docs
 - [ ] Usage examples (at least Express + Fastify)
 - [x] Changesets configuration
 - [x] npm publish workflow
 - [x] `CHANGELOG.md`
 - [x] `README.md` updated with quickstart
 - [ ] Security FAQ
+- [ ] Markdown API guide
 
 ### Post-v2 Focus
 
-- expand package-level API documentation and TSDoc coverage
+- expand package-level API documentation where human-written docs add clarity
 - add concrete example applications for Express and Fastify
 - decide whether `@sigil-security/client` and `@sigil-security/ops` stay experimental or graduate to stable
 - investigate cold HKDF startup cost and optional `client` / `ops` performance coverage
