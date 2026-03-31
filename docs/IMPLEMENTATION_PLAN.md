@@ -1178,11 +1178,11 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 ### Phase 6 Checklist
 
 - [ ] Unit tests meeting coverage targets
-- [ ] Replay attack test suite
-- [ ] Forgery / fuzzing test suite
-- [ ] Boundary value tests (TTL, grace window, keyring)
+- [x] Replay attack test suite
+- [x] Forgery / fuzzing test suite
+- [x] Boundary value tests (TTL, grace window, keyring)
 - [ ] Side-channel verification tests
-- [ ] Key management tests (rotation, compromise, domain isolation)
+- [x] Key management tests (rotation, compromise, domain isolation)
 - [x] Benchmark tests with vitest bench
 - [ ] Cross-runtime CI (Node, Bun, Deno)
 - [ ] Integration tests (end-to-end flows)
