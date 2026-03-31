@@ -83,6 +83,7 @@ describe('sync channel', () => {
     const channel = createSyncChannel({
       window: fakeWindow,
       tokenKey: 'sigil_csrf_token',
+      expiresAtKey: 'sigil_csrf_expires_at',
       readState: (): TokenState | null => currentState,
     })
     const events: unknown[] = []
@@ -107,11 +108,13 @@ describe('sync channel', () => {
     const sender = createSyncChannel({
       broadcastChannel: FakeBroadcastChannel,
       tokenKey: 'sigil_csrf_token',
+      expiresAtKey: 'sigil_csrf_expires_at',
       readState: (): TokenState | null => null,
     })
     const receiver = createSyncChannel({
       broadcastChannel: FakeBroadcastChannel,
       tokenKey: 'sigil_csrf_token',
+      expiresAtKey: 'sigil_csrf_expires_at',
       readState: (): TokenState | null => null,
     })
     const rawBroadcaster = new FakeBroadcastChannel('sigil_csrf_sync')
@@ -131,5 +134,29 @@ describe('sync channel', () => {
     rawBroadcaster.close()
     sender.close()
     receiver.close()
+  })
+
+  it('should react to expiry-only storage updates when the token value stays the same', () => {
+    let currentState: TokenState | null = { token: 'token-1', expiresAt: 1_000 }
+    const fakeWindow = new FakeWindow()
+    const channel = createSyncChannel({
+      window: fakeWindow,
+      tokenKey: 'sigil_csrf_token',
+      expiresAtKey: 'sigil_csrf_expires_at',
+      readState: (): TokenState | null => currentState,
+    })
+    const events: unknown[] = []
+    channel.subscribe((message): void => {
+      events.push(message)
+    })
+
+    currentState = { token: 'token-1', expiresAt: 2_000 }
+    fakeWindow.dispatchStorage('sigil_csrf_expires_at')
+
+    expect(events).toEqual([
+      { type: 'token-updated', state: { token: 'token-1', expiresAt: 2_000 } },
+    ])
+
+    channel.close()
   })
 })

@@ -33,8 +33,10 @@ export function createLeaderCoordinator(config?: {
   readonly locks?: LockManagerLike | undefined
 }): LeaderCoordinator {
   const lockName = config?.lockName ?? DEFAULT_LEADER_LOCK_NAME
-  const navigatorLike = globalThis.navigator as Navigator & { locks?: LockManagerLike }
-  const locks: LockManagerLike | undefined = config?.locks ?? navigatorLike.locks
+  const navigatorLike = globalThis.navigator as
+    | (Navigator & { locks?: LockManagerLike })
+    | undefined
+  const locks: LockManagerLike | undefined = config?.locks ?? navigatorLike?.locks
   let closed = false
   // A single in-flight slot deduplicates concurrent refreshes for the same coordinator
   // instance. The cast is intentional because callers provide the matching task/result type.

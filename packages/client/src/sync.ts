@@ -37,6 +37,7 @@ export function createSyncChannel(config: {
   readonly broadcastChannel?: BroadcastChannelConstructorLike | undefined
   readonly window?: EventWindowLike | undefined
   readonly tokenKey: string
+  readonly expiresAtKey: string
   readonly readState: () => TokenState | null
 }): SyncChannel {
   const listeners = new Set<(message: SyncMessage) => void>()
@@ -61,7 +62,7 @@ export function createSyncChannel(config: {
   }
 
   const onStorage = (event: { readonly key: string | null }): void => {
-    if (event.key !== config.tokenKey) return
+    if (event.key !== config.tokenKey && event.key !== config.expiresAtKey) return
 
     const state = config.readState()
     if (state === null) {

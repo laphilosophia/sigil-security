@@ -83,8 +83,7 @@ export function createSigilFetchInterceptor(config: {
       return fetchImpl(baseRequest)
     }
 
-    const currentToken =
-      refreshController.getTokenState() ?? (await refreshController.refreshToken(false))
+    const currentToken = await refreshController.refreshToken(false)
     const oneShotToken = await resolveOneShotToken(
       resolveOneShotAction,
       oneShotRequester,

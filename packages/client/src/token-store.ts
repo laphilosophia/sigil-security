@@ -34,6 +34,10 @@ function isSameState(left: TokenState | null, right: TokenState | null): boolean
   return left.token === right.token && left.expiresAt === right.expiresAt
 }
 
+function isValidTokenState(state: TokenState): boolean {
+  return state.token !== '' && Number.isFinite(state.expiresAt) && state.expiresAt > 0
+}
+
 export function createTokenStore(config?: {
   readonly storage?: StorageLike | undefined
   readonly tokenKey?: string | undefined
@@ -74,6 +78,10 @@ export function createTokenStore(config?: {
   }
 
   function write(state: TokenState): void {
+    if (!isValidTokenState(state)) {
+      throw new Error('Sigil client: token state must include a non-empty token and positive expiry.')
+    }
+
     const current = read()
     if (isSameState(current, state)) {
       return

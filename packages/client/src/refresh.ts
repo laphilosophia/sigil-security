@@ -56,6 +56,23 @@ async function waitForTokenUpdate(
   })
 }
 
+function hasFreshSynchronizedState(
+  previous: TokenState | null,
+  next: TokenState | null,
+  now: number,
+  tokenTTLms: number,
+  refreshWindowRatio: number,
+): next is TokenState {
+  if (next === null) return false
+  if (previous === null) return true
+
+  return (
+    next.token !== previous.token ||
+    next.expiresAt !== previous.expiresAt ||
+    !shouldRefreshToken(next, now, tokenTTLms, refreshWindowRatio)
+  )
+}
+
 export function shouldRefreshToken(
   state: TokenState,
   now: number,
@@ -100,7 +117,7 @@ export function createRefreshController(config: {
       method: 'GET',
       credentials,
     })
-      return parseTokenResponse(response)
+    return parseTokenResponse(response)
   }
 
   async function refreshIfNeeded(): Promise<TokenState | null> {
@@ -135,6 +152,19 @@ export function createRefreshController(config: {
       return leaderResult.value
     }
 
+    const synchronizedState = tokenStore.read()
+    if (
+      hasFreshSynchronizedState(
+        current,
+        synchronizedState,
+        now(),
+        tokenTTLMs,
+        refreshWindowRatio,
+      )
+    ) {
+      return synchronizedState
+    }
+
     try {
       return await waitForTokenUpdate(tokenStore, waitForSyncMs)
     } catch {
@@ -150,7 +180,7 @@ export function createRefreshController(config: {
       if (intervalHandle !== null || refreshIntervalMs <= 0) return
 
       intervalHandle = timerWindow.setInterval(() => {
-        void refreshIfNeeded()
+        void refreshIfNeeded().catch(() => undefined)
       }, refreshIntervalMs)
     },
 

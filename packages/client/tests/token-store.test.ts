@@ -95,4 +95,21 @@ describe('token store', () => {
     expect(store.read()).toBeNull()
     expect(storage.removeCalls).toEqual(['sigil_csrf_token', 'sigil_csrf_expires_at'])
   })
+
+  it('should reject invalid states during writes before notifying subscribers', () => {
+    const storage = new SpyStorage()
+    const store = createTokenStore({ storage })
+    const events: Array<TokenState | null> = []
+
+    store.subscribe((state): void => {
+      events.push(state)
+    })
+
+    expect(() => {
+      store.write({ token: '', expiresAt: 0 })
+    }).toThrow('Sigil client: token state must include a non-empty token and positive expiry.')
+
+    expect(events).toEqual([])
+    expect(storage.setCalls).toEqual([])
+  })
 })

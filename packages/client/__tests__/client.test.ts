@@ -301,7 +301,7 @@ describe('client package', () => {
 
     expect(response.status).toBe(200)
     expect(calls).toEqual([
-      { url: '/protected', token: 'stale-token' },
+      { url: '/protected', token: 'fresh-token' },
       { url: '/protected', token: 'fresh-token' },
     ])
 
@@ -374,3 +374,4 @@ describe('client package', () => {
     expect(fakeWindow.cleared).toHaveLength(1)
   })
 })
+

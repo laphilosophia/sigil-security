@@ -12,12 +12,24 @@ export function isTokenState(value: unknown): value is TokenState {
 }
 
 export function resolveEndpointUrl(path: string): string {
-  if (/^[a-z]+:/iu.test(path)) {
-    return path
+  if (path.startsWith('//')) {
+    throw new Error('Sigil client: protocol-relative endpoint URLs are not allowed.')
+  }
+
+  if (/^[a-z][a-z\d+\-.]*:/iu.test(path)) {
+    const url = new URL(path)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new Error('Sigil client: endpoint URLs must use http: or https:.')
+    }
+    return url.toString()
   }
 
   if (typeof globalThis.location !== 'undefined') {
-    return new URL(path, globalThis.location.href).toString()
+    const url = new URL(path, globalThis.location.href)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new Error('Sigil client: endpoint URLs must use http: or https:.')
+    }
+    return url.toString()
   }
 
   throw new Error(

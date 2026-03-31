@@ -22,19 +22,29 @@ function shouldRedact(key: string): boolean {
   )
 }
 
-function sanitizeValue(key: string, value: unknown): unknown {
+function sanitizeValue(key: string, value: unknown, visited: WeakSet<object>): unknown {
   if (shouldRedact(key)) {
     return '[REDACTED]'
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(key, item))
+    if (visited.has(value)) {
+      return '[Circular]'
+    }
+
+    visited.add(value)
+    return value.map((item) => sanitizeValue(key, item, visited))
   }
 
   if (typeof value === 'object' && value !== null) {
+    if (visited.has(value)) {
+      return '[Circular]'
+    }
+
+    visited.add(value)
     const sanitized: Record<string, unknown> = {}
     for (const [nestedKey, nestedValue] of Object.entries(value)) {
-      sanitized[nestedKey] = sanitizeValue(nestedKey, nestedValue)
+      sanitized[nestedKey] = sanitizeValue(nestedKey, nestedValue, visited)
     }
     return sanitized
   }
@@ -53,7 +63,9 @@ export function createStructuredLogger(config?: {
     const sanitizedContext =
       context === undefined
         ? undefined
-        : (sanitizeValue('context', context) as Readonly<Record<string, unknown>>)
+        : (sanitizeValue('context', context, new WeakSet()) as Readonly<
+            Record<string, unknown>
+          >)
 
     sink({
       level,

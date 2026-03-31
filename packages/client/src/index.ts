@@ -53,8 +53,10 @@ function resolveWindowLike(
 }
 
 function resolveLocks(value?: LockManagerLike): LockManagerLike | undefined {
-  const navigatorLike = globalThis.navigator as Navigator & { locks?: LockManagerLike }
-  return value ?? navigatorLike.locks
+  const navigatorLike = globalThis.navigator as
+    | (Navigator & { locks?: LockManagerLike })
+    | undefined
+  return value ?? navigatorLike?.locks
 }
 
 export type {
@@ -112,6 +114,7 @@ export function createSigilClient(config: SigilClientConfig = {}): SigilClient {
     broadcastChannel: config.broadcastChannel,
     window: windowLike,
     tokenKey: tokenStore.tokenKey,
+    expiresAtKey: tokenStore.expiresAtKey,
     readState: (): TokenState | null => tokenStore.read(),
   })
   const unsubscribeSync = syncChannel.subscribe((message) => {

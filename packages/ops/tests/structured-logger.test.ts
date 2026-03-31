@@ -43,4 +43,38 @@ describe('structured logger', () => {
       },
     ])
   })
+
+  it('should replace circular references with a safe placeholder', () => {
+    const entries: StructuredLogEntry[] = []
+    const logger = createStructuredLogger({
+      sink: (entry): void => {
+        entries.push(entry)
+      },
+      now: (): number => 1_235,
+    })
+    const circular: Record<string, unknown> = {
+      name: 'root',
+    }
+    circular.self = circular
+
+    expect(() => {
+      logger.info('circular', {
+        circular,
+      })
+    }).not.toThrow()
+
+    expect(entries).toEqual([
+      {
+        level: 'info',
+        message: 'circular',
+        timestamp: 1_235,
+        context: {
+          circular: {
+            name: 'root',
+            self: '[Circular]',
+          },
+        },
+      },
+    ])
+  })
 })
