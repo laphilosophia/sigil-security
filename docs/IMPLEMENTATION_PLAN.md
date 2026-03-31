@@ -36,7 +36,7 @@ The repository is now an **implemented monorepo** with active follow-up work. Cu
 - CI/CD, package manifests, TypeScript configuration, and workspace tests all exist in-repo.
 - Oak and Hono runtime adapters remain intentionally disabled pending separate security remediation.
 
-**Remaining work is primarily hardening, benchmark/fuzz evidence, release messaging, and broader runtime validation.**
+**Remaining work is primarily release alignment, hosted CI confirmation, documentation polish, and targeted performance follow-up (cold HKDF optimization investigation and optional client/ops performance coverage).**
 
 ---
 
@@ -1177,18 +1177,18 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ### Phase 6 Checklist
 
-- [ ] Unit tests meeting coverage targets
+- [x] Unit tests meeting coverage targets
 - [x] Replay attack test suite
 - [x] Forgery / fuzzing test suite
 - [x] Boundary value tests (TTL, grace window, keyring)
 - [x] Side-channel verification tests
 - [x] Key management tests (rotation, compromise, domain isolation)
 - [x] Benchmark tests with vitest bench
-- [ ] Cross-runtime CI (Node, Bun, Deno)
-- [ ] Integration tests (end-to-end flows)
+- [x] Cross-runtime CI (Node, Bun, Deno)
+- [x] Integration tests (end-to-end flows)
 - [ ] All tests pass on CI
 
-Benchmark follow-up still remains for cross-runtime baselines, cold HKDF optimization/investigation, and `client`/`ops` perf coverage.
+Package-specific coverage enforcement and a cross-runtime smoke workflow now exist in-repo. Benchmark follow-up still remains for cold HKDF optimization/investigation and optional `client`/`ops` perf coverage.
 
 ---
 

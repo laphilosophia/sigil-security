@@ -152,6 +152,37 @@ describe('elysia-adapter', () => {
       expect(result).toHaveProperty('expiresAt')
     })
 
+    it('should generate one-shot tokens via POST route', async () => {
+      const oneShotSigil = await createSigil({
+        masterSecret,
+        allowedOrigins: ['https://example.com'],
+        oneShotEnabled: true,
+      })
+      const gen = await oneShotSigil.generateToken()
+      expect(gen.success).toBe(true)
+      if (!gen.success) return
+
+      const plugin = createElysiaPlugin(oneShotSigil)
+      const app = mockElysiaApp()
+
+      plugin(app)
+
+      const ctx = mockElysiaContext({
+        method: 'POST',
+        path: '/api/csrf/one-shot',
+        headers: {
+          'x-csrf-token': gen.token,
+        },
+        body: { action: 'POST:/api/delete' },
+      })
+
+      const result = await app.callRoute('POST', '/api/csrf/one-shot', ctx) as Record<string, unknown>
+
+      expect(ctx.set.status).toBe(200)
+      expect(result).toHaveProperty('token')
+      expect(result).toHaveProperty('action', 'POST:/api/delete')
+    })
+
     it('should allow GET requests through beforeHandle', async () => {
       const plugin = createElysiaPlugin(sigil)
       const app = mockElysiaApp()

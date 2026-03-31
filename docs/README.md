@@ -1,7 +1,7 @@
 # Sigil-Security Documentation
 
 **Project:** Stateless Cryptographic Request Intent Verification Primitive
-**Status:** Implemented monorepo, hardening and release alignment in progress
+**Status:** Implemented monorepo, Phase 6 hardening evidence completed in-repository, release alignment in progress
 **Total Documentation:** ~3500 lines (6 files)
 
 ---
@@ -172,16 +172,16 @@
 ### Completed Phases
 
 - **Phase 0-3:** Infrastructure, core, policy, and runtime are implemented in the repo and validated by local lint, test, build, and typecheck runs.
-- **Phase 4-5:** `client` and `ops` now have implementation code and tests, but remain explicitly experimental until the hardening and release criteria are closed.
-- **Documentation foundation:** Specifications, boundary rules, operations guidance, and security advisories are present and aligned to the architecture.
+- **Phase 4-5:** `client` and `ops` now have implementation code and tests, but remain explicitly experimental until Phase 7 release alignment is complete.
+- **Phase 6 evidence:** hardening suites, side-channel checks, package-based coverage targets, benchmark harness, integration flows, and cross-runtime smoke validation are now in the repo.
 
 ### Current Phase
 
-**Phase 6-7 Closing Work**
+**Phase 7 Release Alignment**
 
-1. Security hardening evidence — fuzzing, malformed token coverage, benchmark baselines, and wider runtime validation.
-2. Release alignment — experimental messaging for `client` and `ops`, package maturity review, and documentation accuracy.
-3. Optional package maturation — move `client` and `ops` from experimental to GA only after hardening criteria are met.
+1. Hosted CI confirmation of the new Node matrix and cross-runtime smoke workflow.
+2. Release alignment for `client` and `ops`, including package maturity review and messaging cleanup.
+3. Optional package maturation — move `client` and `ops` from experimental to GA only after release criteria are met.
 4. Model Generalization — coverage validation, extended use cases, and formal docs.
 
 ---
