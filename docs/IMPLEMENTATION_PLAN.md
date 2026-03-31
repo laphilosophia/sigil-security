@@ -1181,7 +1181,7 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 - [x] Replay attack test suite
 - [x] Forgery / fuzzing test suite
 - [x] Boundary value tests (TTL, grace window, keyring)
-- [ ] Side-channel verification tests
+- [x] Side-channel verification tests
 - [x] Key management tests (rotation, compromise, domain isolation)
 - [x] Benchmark tests with vitest bench
 - [ ] Cross-runtime CI (Node, Bun, Deno)
