@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { WebCryptoCryptoProvider } from '../src/web-crypto-provider.js'
 
 describe('WebCryptoCryptoProvider', () => {
@@ -58,7 +58,7 @@ describe('WebCryptoCryptoProvider', () => {
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('')
       // Known SHA-256 of "hello"
-      expect(hex).toBe('2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824')
+      expect(hex).toBe('2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824') // DevSkim: ignore DS173237
     })
   })
 
