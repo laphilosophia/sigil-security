@@ -1,37 +1,54 @@
-# Sigil-Security
+# Sigil Security
 
-Stateless cryptographic request intent verification for web applications.
+Stateless cryptographic request intent verification for modern web applications.
 
-Sigil combines cryptographic tokens, request provenance checks, and optional replay protection to verify that a state-changing request is both authentic and contextually valid. The monorepo is organized as layered packages so teams can adopt only the surface they need.
+Sigil verifies more than "does this request have a token?". It combines cryptographic integrity, request provenance, freshness, and optional replay protection so state-changing requests are both authentic and contextually valid.
 
-## Packages
+[![CodeQL](https://github.com/laphilosophia/sigil-security/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/laphilosophia/sigil-security/actions/workflows/github-code-scanning/codeql)
+[![Tests](https://github.com/laphilosophia/sigil-security/actions/workflows/ci.yml/badge.svg)](https://github.com/laphilosophia/sigil-security/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40sigil-security%2Fruntime?label=npm)](https://www.npmjs.com/package/@sigil-security/runtime)
+[![License](https://img.shields.io/github/license/laphilosophia/sigil-security)](https://github.com/laphilosophia/sigil-security/blob/main/LICENSE)
 
-| Package | Purpose | Status |
+## Why Sigil
+
+- moves beyond classic synchronizer-token framing toward request intent verification
+- keeps the core security surface stateless and composable
+- layers policy, runtime, client, and ops surfaces so teams can adopt only what they need
+- ships with in-repo hardening, benchmark, and cross-runtime validation evidence
+
+## What Gets Verified
+
+Sigil treats a request as valid only when all of these hold:
+
+```text
+Integrity AND Context AND Freshness AND Provenance
+```
+
+- `Integrity`: HMAC-backed token verification
+- `Freshness`: TTL enforcement and optional one-shot replay protection
+- `Provenance`: Origin and Fetch Metadata validation
+- `Context`: optional request, route, or session binding
+
+## Choose Your Package
+
+| Package | Use it when... | Status |
 | --- | --- | --- |
-| `@sigil-security/core` | token generation, validation, HKDF/HMAC, one-shot primitives | stable |
-| `@sigil-security/policy` | Fetch Metadata, Origin, method, content-type, context policies | stable |
-| `@sigil-security/runtime` | framework adapters and orchestration | stable |
-| `@sigil-security/client` | browser token lifecycle helpers | experimental |
-| `@sigil-security/ops` | telemetry and anomaly detection wrappers | experimental |
+| `@sigil-security/runtime` | you want the fastest path to real app integration | production-candidate |
+| `@sigil-security/core` | you need low-level token and key primitives | production-candidate |
+| `@sigil-security/policy` | you want request context policy checks without full runtime orchestration | production-candidate |
+| `@sigil-security/client` | you need browser-side token lifecycle helpers | experimental |
+| `@sigil-security/ops` | you want telemetry, anomaly signals, and structured logs | experimental |
 
-## Install
+Most teams should start with `@sigil-security/runtime`.
 
-Most applications will start with the runtime package:
+## Quick Start
 
 ```bash
 pnpm add @sigil-security/runtime
 ```
 
-Optional packages:
-
-```bash
-pnpm add @sigil-security/client
-pnpm add @sigil-security/ops
-```
-
-## Quick Start
-
 ```ts
+import express from 'express'
 import { createSigil } from '@sigil-security/runtime'
 import { createExpressMiddleware } from '@sigil-security/runtime/express'
 
@@ -41,17 +58,30 @@ const sigil = await createSigil({
   oneShotEnabled: true,
 })
 
+const app = express()
+app.use(express.json())
 app.use(createExpressMiddleware(sigil, {
   excludePaths: ['/health'],
 }))
 ```
 
-To issue a token to the browser, expose the built-in token endpoint:
+Expose the built-in token endpoints to the browser:
 
 - `GET /api/csrf/token`
 - `POST /api/csrf/one-shot` when one-shot tokens are enabled
 
-A fuller getting-started guide lives in [docs/QUICKSTART.md](./docs/QUICKSTART.md).
+For the full first-run path, see [docs/QUICKSTART.md](./docs/QUICKSTART.md).
+
+## Layered Architecture
+
+```text
+core -> policy -> runtime -> client / ops
+```
+
+- `core` provides cryptographic primitives and validation building blocks
+- `policy` evaluates request context rules such as Origin and Fetch Metadata
+- `runtime` turns those pieces into framework-ready protection flows
+- `client` and `ops` extend the system with browser lifecycle helpers and observability
 
 ## Documentation
 
@@ -63,35 +93,13 @@ A fuller getting-started guide lives in [docs/QUICKSTART.md](./docs/QUICKSTART.m
 - [Benchmarking](./docs/BENCHMARKING.md)
 - [Implementation Plan](./docs/IMPLEMENTATION_PLAN.md)
 
-Package-specific READMEs:
+Package guides:
 
 - [core](./packages/core/README.md)
 - [policy](./packages/policy/README.md)
 - [runtime](./packages/runtime/README.md)
 - [client](./packages/client/README.md)
 - [ops](./packages/ops/README.md)
-
-## Security Model
-
-Sigil treats a request as valid only when all of these hold:
-
-```text
-Integrity AND Context AND Freshness AND Provenance
-```
-
-In practice that means:
-
-- integrity via HMAC verification
-- freshness via TTL and optional one-shot replay prevention
-- provenance via Origin and Fetch Metadata signals
-- context via optional request/session bindings
-
-## Status
-
-- `core`, `policy`, and `runtime` are production-candidate surfaces in the repository
-- `client` and `ops` are implemented but still published as experimental
-- Oak and Hono adapters remain disabled pending separate security review
-- Phase 6 hardening evidence is in-repo; current focus is Phase 7 release alignment, hosted CI confirmation, and package promotion decisions
 
 ## License
 

@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "sigil-security",
-  "description": "Stateless cryptographic request intent verification primitive",
+  "description": "Stateless cryptographic request intent verification for modern web applications",
   "homepage": "https://github.com/laphilosophia/sigil-security#readme",
   "bugs": {
     "url": "https://github.com/laphilosophia/sigil-security/issues"
