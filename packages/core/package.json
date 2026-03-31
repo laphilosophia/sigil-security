@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/core",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Cryptographic request intent verification primitive — core",
   "type": "module",
   "exports": {
@@ -35,6 +35,10 @@
     "webcrypto"
   ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/laphilosophia/sigil-security/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/laphilosophia/sigil-security/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/laphilosophia/sigil-security.git",
@@ -48,3 +52,4 @@
     "access": "public"
   }
 }
+

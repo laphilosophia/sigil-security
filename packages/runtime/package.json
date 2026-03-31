@@ -1,6 +1,6 @@
 {
   "name": "@sigil-security/runtime",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Framework adapters — Express, Fastify, Elysia, native fetch",
   "type": "module",
   "exports": {
@@ -76,6 +76,10 @@
     "edge"
   ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/laphilosophia/sigil-security/tree/main/packages/runtime#readme",
+  "bugs": {
+    "url": "https://github.com/laphilosophia/sigil-security/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/laphilosophia/sigil-security.git",
@@ -110,3 +114,4 @@
     "access": "public"
   }
 }
+

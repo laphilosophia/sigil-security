@@ -1,239 +1,55 @@
-# Sigil-Security Documentation
+# Documentation Index
 
-**Project:** Stateless Cryptographic Request Intent Verification Primitive
-**Status:** Implemented monorepo, Phase 6 hardening evidence completed in-repository, release alignment in progress
-**Total Documentation:** ~3500 lines (6 files)
+Sigil now has two documentation layers:
 
----
+- practical onboarding docs for application developers
+- deeper specification and operations docs for implementers and reviewers
 
-## Documentation Structure
+## Start Here
 
-### 1. [`BOUNDARY_SPECIFICATION.md`](./BOUNDARY_SPECIFICATION.md) - Core Boundary Specification
+- [Root README](../README.md): package overview, install, first runtime example
+- [Quickstart](./QUICKSTART.md): fastest path to a working server integration
+- [Implementation Plan](./IMPLEMENTATION_PLAN.md): current project status and remaining phase work
 
-**Scope:** Core behavioral boundaries (normative)
+## Package Guides
 
-**Critical Rules:**
+- [@sigil-security/core](../packages/core/README.md)
+- [@sigil-security/policy](../packages/policy/README.md)
+- [@sigil-security/runtime](../packages/runtime/README.md)
+- [@sigil-security/client](../packages/client/README.md)
+- [@sigil-security/ops](../packages/ops/README.md)
 
-- **Core MUST do:** Cryptographic primitives, stateless validation, pure functions
-- **Core MUST NOT do:** Lifecycle management, state orchestration, policy enforcement, runtime coupling, operational behavior
-- **Only permitted state:** Ephemeral replay cache (TTL-bounded, optional)
-- **Architectural layer contract:** `sigil-core` (crypto primitive) → `sigil-policy` (validation) → `sigil-runtime` (adapters) → `sigil-ops` (telemetry)
+## Architecture And Security Docs
 
-**Final Identity:** Cryptographic Request Authenticity Primitive (not CSRF middleware)
+- [Boundary Specification](./BOUNDARY_SPECIFICATION.md): non-negotiable layer boundaries
+- [Specification](./SPECIFICATION.md): token model, lifecycle, validation flow
+- [Operations Manual](./OPERATIONS.md): monitoring, anomaly response, incident handling
+- [Crypto Analysis](./CRYPTO_ANALYSIS.md): WebCrypto choices and constraints
+- [Security Advisories](./SECURITY_ADVISORIES.md): third-party and adapter-related security notes
+- [Benchmarking](./BENCHMARKING.md): current benchmark harness and local baseline
+- [Model Generalization](./MODEL_GENERALIZATION.md): longer-term positioning beyond classic CSRF framing
 
-**Audience:** Core contributors, architects (MUST READ before implementation)
+## Suggested Reading Paths
 
----
+### Application teams
 
-### 2. [`SPECIFICATION.md`](./SPECIFICATION.md) - Technical Specification
+1. [Root README](../README.md)
+2. [Quickstart](./QUICKSTART.md)
+3. [Runtime README](../packages/runtime/README.md)
+4. [Client README](../packages/client/README.md) if browser helpers are needed
+5. [Ops README](../packages/ops/README.md) if telemetry is needed
 
-**Scope:** Architectural design, token model, lifecycle, one-shot primitive
+### Security reviewers
 
-**Contents:**
+1. [Boundary Specification](./BOUNDARY_SPECIFICATION.md)
+2. [Specification](./SPECIFICATION.md)
+3. [Operations Manual](./OPERATIONS.md)
+4. [Security Advisories](./SECURITY_ADVISORIES.md)
+5. [Benchmarking](./BENCHMARKING.md)
 
-- **Part I: Core Specification**
-  - Threat model
-  - Architectural design (Core, Policy Engine, Adapters, Crypto)
-  - Token model (kid, nonce, ts, ctx, mac)
-  - Cryptographic parameters (HKDF-SHA256, 128-bit nonce)
-  - Validation layers (Fetch Metadata, Origin, Token, Context)
-  - Side-channel protection (timing, early reject, error oracle)
-  - Risk tier model (low/medium/high assurance)
-  - Key management and rotation
-  - Browser vs API mode
+### Contributors
 
-- **Part II: Token Lifecycle**
-  - Per-session model (20min TTL)
-  - Silent refresh (last 25% window)
-  - Multi-tab synchronization (BroadcastChannel + leader election)
-  - Grace window (60s overlap)
-  - Logout semantics (kid bump, revocation filter)
-
-- **Part III: One-Shot Token Primitive**
-  - Replay-impossible token (nonce cache)
-  - Action binding
-  - High-assurance endpoints
-  - Performance (~80µs overhead)
-
-**Audience:** Developers, implementers, architects
-
----
-
-### 3. [`OPERATIONS.md`](./OPERATIONS.md) - Operations Manual
-
-**Scope:** Monitoring, telemetry, incident response
-
-**Contents:**
-
-- **Part I: Monitoring & Telemetry**
-  - Metric taxonomy (security, crypto, performance, anomaly)
-  - Baseline establishment
-  - Anomaly detection thresholds
-  - Critical alerts (P0-P3)
-  - Dashboards (security, operational)
-  - SIEM integration
-
-- **Part II: Incident Response**
-  - Key compromise (signing key vs master secret)
-  - Token forgery suspicion
-  - Clock skew incident
-  - One-shot replay attack
-  - Validation spike
-  - Escalation matrix
-  - Communication templates
-
-**Audience:** Security team, SRE, oncall engineers
-
----
-
-### 4. [`MODEL_GENERALIZATION.md`](./MODEL_GENERALIZATION.md) - Model Generalization
-
-**Scope:** Extended security model beyond CSRF
-
-**Contents:**
-
-- Security problem space naturally covered by the existing primitive
-- 10 security domains: CSRF, replay, forgery, provenance, action-level, stateless authenticity, intent ambiguity, incident visibility, key resilience, client diversity
-- Request validity formula: `Integrity ∧ Context ∧ Freshness ∧ Provenance`
-- Architectural scope guard (what Sigil must NOT evolve into)
-
-**Final Identity:** Stateless Cryptographic Request Intent Verification Primitive
-
-**Audience:** Architects, product stakeholders
-
----
-
-### 5. [`CRYPTO_ANALYSIS.md`](./CRYPTO_ANALYSIS.md) - Cryptographic Backend Analysis
-
-**Scope:** WebCrypto evaluation and crypto architecture decisions
-
-**Contents:**
-
-- WebCrypto strengths (constant-time, cross-runtime, key isolation, RNG quality)
-- WebCrypto limitations (no streaming, no zeroization, no direct KMS/HSM)
-- Adopted improvements: key hierarchy with domain separation, constant-length tokens, CryptoProvider abstraction
-- WebCrypto vs Node crypto comparison
-
-**Audience:** Core contributors, security reviewers
-
----
-
-### 6. [`SECURITY_ADVISORIES.md`](./SECURITY_ADVISORIES.md) - Dependency Advisories
-
-**Scope:** Third-party CVEs, Sigil exposure, and temporary adapter support decisions
-
-**Audience:** Security reviewers, maintainers
-
----
-
-### 7. [`README.md`](./README.md) - This Document
-
-**Scope:** Documentation index, quick start, project status
-
----
-
-## Quick Start
-
-### For New Readers
-
-1. **Overview:** This README
-2. **Technical Details:** [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I
-3. **Lifecycle Semantics:** [`SPECIFICATION.md`](./SPECIFICATION.md) - Part II
-4. **Operational Requirements:** [`OPERATIONS.md`](./OPERATIONS.md)
-
-### For Core Contributors (Implementation)
-
-1. **READ FIRST:** [`BOUNDARY_SPECIFICATION.md`](./BOUNDARY_SPECIFICATION.md) - Core boundaries
-2. [`CRYPTO_ANALYSIS.md`](./CRYPTO_ANALYSIS.md) - Crypto decisions and CryptoProvider
-3. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I (Core Specification)
-4. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part II (Token Lifecycle)
-
-### For Developers
-
-1. [`SPECIFICATION.md`](./SPECIFICATION.md) - All sections
-2. [`OPERATIONS.md`](./OPERATIONS.md) - Part I (Monitoring)
-
-### For Security/SRE
-
-1. [`OPERATIONS.md`](./OPERATIONS.md) - Part I (Monitoring)
-2. [`OPERATIONS.md`](./OPERATIONS.md) - Part II (Incident Response)
-3. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part III (One-Shot Token)
-
-### For Architects
-
-1. [`BOUNDARY_SPECIFICATION.md`](./BOUNDARY_SPECIFICATION.md) - Core identity
-2. [`MODEL_GENERALIZATION.md`](./MODEL_GENERALIZATION.md) - Extended security model
-3. [`SPECIFICATION.md`](./SPECIFICATION.md) - Part I (Core)
-
----
-
-## Project Status
-
-### Completed Phases
-
-- **Phase 0-3:** Infrastructure, core, policy, and runtime are implemented in the repo and validated by local lint, test, build, and typecheck runs.
-- **Phase 4-5:** `client` and `ops` now have implementation code and tests, but remain explicitly experimental until Phase 7 release alignment is complete.
-- **Phase 6 evidence:** hardening suites, side-channel checks, package-based coverage targets, benchmark harness, integration flows, and cross-runtime smoke validation are now in the repo.
-
-### Current Phase
-
-**Phase 7 Release Alignment**
-
-1. Hosted CI confirmation of the new Node matrix and cross-runtime smoke workflow.
-2. Release alignment for `client` and `ops`, including package maturity review and messaging cleanup.
-3. Optional package maturation — move `client` and `ops` from experimental to GA only after release criteria are met.
-4. Model Generalization — coverage validation, extended use cases, and formal docs.
-
----
-
-## Critical Decisions
-
-### Why Stateless?
-
-**CAP theorem, latency, cost, failure domain**
-
-- Session store I/O (~1ms) vs CPU-bound HMAC (~50µs)
-- Natural horizontal scaling
-- Edge/serverless deployment
-
-**Trade-off:** No instant revocation (TTL expiry required)
-
-### Why Per-Session Token?
-
-**Overhead vs security balance**
-
-- Per-request → high overhead
-- Per-session → low overhead, silent refresh
-
-**Trade-off:** Replay window = TTL (20min)
-
-### Why Optional One-Shot Token?
-
-**Selective usage (high-assurance only)**
-
-- Requires bounded cache (~1MB)
-- Minimal overhead (~80µs)
-- Multi-use sufficient for most endpoints
-
-**Trade-off:** Complexity vs absolute replay prevention
-
----
-
-## Architectural Evolution
-
-**Previous:** CSRF middleware → Token validation → Feature
-**Current:** Request intent verification → Cryptographic proof of intent → Infrastructure primitive
-
----
-
-## Documentation Metrics
-
-- **Total Lines:** ~3500
-- **File Count:** 6
-- **Coverage:** Specification + Operations + Boundaries + Model Generalization + Crypto Analysis
-- **Status:** Production-ready
-
----
-
-**Last Updated:** 2026-02-08
-**Version:** 1.1
+1. [Implementation Plan](./IMPLEMENTATION_PLAN.md)
+2. [Boundary Specification](./BOUNDARY_SPECIFICATION.md)
+3. package README for the area being changed
+4. [Specification](./SPECIFICATION.md)

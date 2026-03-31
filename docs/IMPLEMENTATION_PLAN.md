@@ -32,11 +32,11 @@
 The repository is now an **implemented monorepo** with active follow-up work. Current reality:
 
 - `@sigil-security/core`, `@sigil-security/policy`, and `@sigil-security/runtime` are implemented and verified locally.
-- `@sigil-security/client` and `@sigil-security/ops` now contain implementation code and tests, but remain explicitly **experimental** until Phase 6 hardening and Phase 7 release alignment are complete.
+- `@sigil-security/client` and `@sigil-security/ops` now contain implementation code and tests, but remain explicitly **experimental** until Phase 7 release alignment and package-promotion review are complete.
 - CI/CD, package manifests, TypeScript configuration, and workspace tests all exist in-repo.
 - Oak and Hono runtime adapters remain intentionally disabled pending separate security remediation.
 
-**Remaining work is primarily release alignment, hosted CI confirmation, documentation polish, and targeted performance follow-up (cold HKDF optimization investigation and optional client/ops performance coverage).**
+**Remaining work is primarily release alignment, hosted CI confirmation, package-promotion decisions for `client` and `ops`, and targeted performance follow-up (cold HKDF optimization investigation and optional client/ops performance coverage).**
 
 ---
 
@@ -1041,7 +1041,7 @@ async function requestOneShotToken(action: string): Promise<string> {
 - [x] Tests with mock BroadcastChannel/localStorage
 - [x] Race condition tests (multi-tab simulation)
 - [x] Refresh window edge case tests
-- [ ] Promote package from experimental to GA after Phase 6 hardening evidence
+- [ ] Decide whether to keep package experimental or promote to GA during Phase 7 release alignment
 
 ---
 
@@ -1109,7 +1109,7 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 - [x] `src/index.ts` — Public API
 - [x] Tests with mock metrics collector
 - [x] Anomaly detection threshold tests
-- [ ] Promote package from experimental to GA after Phase 6 hardening evidence
+- [ ] Decide whether to keep package experimental or promote to GA during Phase 7 release alignment
 
 ---
 
@@ -1216,7 +1216,7 @@ Package-specific coverage enforcement and a cross-runtime smoke workflow now exi
 - npm publish automation (GitHub Actions)
 - Package provenance (npm provenance statements)
 - `CHANGELOG.md` generation
-- Version: `1.0.0` (stable initial release)
+- Versioning target: `1.x` for stable `core` / `policy` / `runtime`, with `client` and `ops` remaining experimental until explicitly promoted
 
 ### 7.4 Documentation Updates
 
