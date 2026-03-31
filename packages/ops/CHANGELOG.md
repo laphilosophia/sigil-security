@@ -4,7 +4,7 @@
 
 ### Major Changes
 
-- Initial Release for all
+- Experimental telemetry implementation for metrics, anomaly detection, structured logging, and Sigil runtime instrumentation.
 
 ### Patch Changes
 

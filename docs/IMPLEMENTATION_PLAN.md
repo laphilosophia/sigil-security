@@ -29,18 +29,14 @@
 
 ## Project Status
 
-The repository is currently **specification-only**. Contents:
+The repository is now an **implemented monorepo** with active follow-up work. Current reality:
 
-- `README.md` — Project overview
-- `docs/BOUNDARY_SPECIFICATION.md` — Core boundary rules (244 lines, normative)
-- `docs/SPECIFICATION.md` — Technical specification (1724 lines)
-- `docs/OPERATIONS.md` — Operations manual (921 lines)
-- `docs/MODEL_GENERALIZATION.md` — Model generalization (233 lines)
-- `docs/CRYPTO_ANALYSIS.md` — Cryptographic backend analysis (226 lines)
-- `.cursor/rules/` — Architecture, security, and code quality rules
-- `.gitignore`, `.node-version` (18), `LICENSE` (Apache 2.0), `CONTRIBUTING.md`, `SECURITY.md`
+- `@sigil-security/core`, `@sigil-security/policy`, and `@sigil-security/runtime` are implemented and verified locally.
+- `@sigil-security/client` and `@sigil-security/ops` now contain implementation code and tests, but remain explicitly **experimental** until Phase 6 hardening and Phase 7 release alignment are complete.
+- CI/CD, package manifests, TypeScript configuration, and workspace tests all exist in-repo.
+- Oak and Hono runtime adapters remain intentionally disabled pending separate security remediation.
 
-**No implementation code, package.json, tsconfig, test files, or CI/CD configuration exists.**
+**Remaining work is primarily hardening, benchmark/fuzz evidence, release messaging, and broader runtime validation.**
 
 ---
 
@@ -960,7 +956,7 @@ Returns: `{ token, expiresAt }` (regular) or `{ token, expiresAt, action }` (one
 
 ---
 
-## Phase 4: @sigil-security/client
+## Phase 4: @sigil-security/client (implemented, experimental)
 
 **Goal:** Browser SDK for token lifecycle management.
 **Dependencies:** Phase 3 complete (needs endpoint contract)
@@ -1035,20 +1031,21 @@ async function requestOneShotToken(action: string): Promise<string> {
 
 ### Phase 4 Checklist
 
-- [ ] `src/token-store.ts` — localStorage management
-- [ ] `src/refresh.ts` — Silent refresh with configurable window
-- [ ] `src/sync.ts` — Multi-tab sync (BroadcastChannel + storage fallback)
-- [ ] `src/leader.ts` — Leader election (Web Locks)
-- [ ] `src/interceptor.ts` — Fetch interceptor (auto-attach, 403 retry)
-- [ ] `src/one-shot.ts` — One-shot token request helper
-- [ ] `src/index.ts` — Public API (init, configure, teardown)
-- [ ] Tests with mock BroadcastChannel/localStorage
-- [ ] Race condition tests (multi-tab simulation)
-- [ ] Refresh window edge case tests
+- [x] `src/token-store.ts` — localStorage management
+- [x] `src/refresh.ts` — Silent refresh with configurable window
+- [x] `src/sync.ts` — Multi-tab sync (BroadcastChannel + storage fallback)
+- [x] `src/leader.ts` — Leader election (Web Locks)
+- [x] `src/interceptor.ts` — Fetch interceptor (auto-attach, 403 retry)
+- [x] `src/one-shot.ts` — One-shot token request helper
+- [x] `src/index.ts` — Public API (init, configure, teardown)
+- [x] Tests with mock BroadcastChannel/localStorage
+- [x] Race condition tests (multi-tab simulation)
+- [x] Refresh window edge case tests
+- [ ] Promote package from experimental to GA after Phase 6 hardening evidence
 
 ---
 
-## Phase 5: @sigil-security/ops
+## Phase 5: @sigil-security/ops (implemented, experimental)
 
 **Goal:** Optional telemetry and monitoring layer.
 **Dependencies:** Phase 3 complete
@@ -1104,14 +1101,15 @@ Baseline + threshold model from `OPERATIONS.md` Section 4:
 
 ### Phase 5 Checklist
 
-- [ ] `src/metrics.ts` — Pluggable metrics interface + no-op default
-- [ ] `src/metric-points.ts` — All metric name constants
-- [ ] `src/telemetry-middleware.ts` — Middleware wrapper
-- [ ] `src/anomaly.ts` — Baseline + threshold anomaly detection
-- [ ] `src/structured-logger.ts` — Structured logging interface
-- [ ] `src/index.ts` — Public API
-- [ ] Tests with mock metrics collector
-- [ ] Anomaly detection threshold tests
+- [x] `src/metrics.ts` — Pluggable metrics interface + no-op default
+- [x] `src/metric-points.ts` — All metric name constants
+- [x] `src/telemetry-middleware.ts` — Middleware wrapper
+- [x] `src/anomaly.ts` — Baseline + threshold anomaly detection
+- [x] `src/structured-logger.ts` — Structured logging interface
+- [x] `src/index.ts` — Public API
+- [x] Tests with mock metrics collector
+- [x] Anomaly detection threshold tests
+- [ ] Promote package from experimental to GA after Phase 6 hardening evidence
 
 ---
 

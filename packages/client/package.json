@@ -1,7 +1,7 @@
 {
   "name": "@sigil-security/client",
   "version": "1.0.0",
-  "description": "Browser SDK — silent refresh, multi-tab sync, leader election, fetch interceptor",
+  "description": "Experimental browser SDK — silent refresh, multi-tab sync, leader election, fetch interceptor",
   "type": "module",
   "exports": {
     ".": {
@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit --project tsconfig.typecheck.json"
   },
   "keywords": [
     "csrf",
@@ -44,6 +44,7 @@
     "typescript": "^5.7.0"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "tag": "experimental"
   }
 }

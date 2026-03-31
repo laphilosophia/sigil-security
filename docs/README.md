@@ -1,7 +1,7 @@
 # Sigil-Security Documentation
 
 **Project:** Stateless Cryptographic Request Intent Verification Primitive
-**Status:** Production-Ready Specifications, Implementation In Progress
+**Status:** Implemented monorepo, hardening and release alignment in progress
 **Total Documentation:** ~3500 lines (6 files)
 
 ---
@@ -171,32 +171,18 @@
 
 ### Completed Phases
 
-- **Phase 1-5:** Cryptographic foundation
-  - Token format stabilized
-  - HKDF-SHA256 key derivation
-  - Side-channel protection
-  - Risk tier model
-  - Browser vs API mode
-
-- **Phase 7:** Operational security
-  - Token lifecycle specification
-  - One-shot token primitive
-  - Monitoring and telemetry architecture
-  - Incident response runbook
+- **Phase 0-3:** Infrastructure, core, policy, and runtime are implemented in the repo and validated by local lint, test, build, and typecheck runs.
+- **Phase 4-5:** `client` and `ops` now have implementation code and tests, but remain explicitly experimental until the hardening and release criteria are closed.
+- **Documentation foundation:** Specifications, boundary rules, operations guidance, and security advisories are present and aligned to the architecture.
 
 ### Current Phase
 
-**Implementation In Progress** (10-14 weeks + Model Generalization)
+**Phase 6-7 Closing Work**
 
-1. Project Infrastructure — Monorepo, CI/CD (1 week)
-2. Core Library — CryptoProvider, domain-separated keys, constant-length tokens (2-3 weeks)
-3. Policy Engine — Fetch Metadata, Origin, context binding, risk tiers (1-2 weeks)
-4. Framework Adapters — Express, Fastify, Elysia, native fetch (2-3 weeks)
-5. Browser SDK — Silent refresh, multi-tab sync, leader election (1-2 weeks)
-6. Telemetry — Pluggable metrics, anomaly detection, structured logging (1 week)
-7. Testing & Security — Unit, security, fuzzing, benchmarks (2 weeks)
-8. Documentation & Release (1 week)
-9. Model Generalization — Coverage validation, extended use cases, formal docs (2-3 weeks)
+1. Security hardening evidence — fuzzing, malformed token coverage, benchmark baselines, and wider runtime validation.
+2. Release alignment — experimental messaging for `client` and `ops`, package maturity review, and documentation accuracy.
+3. Optional package maturation — move `client` and `ops` from experimental to GA only after hardening criteria are met.
+4. Model Generalization — coverage validation, extended use cases, and formal docs.
 
 ---
 

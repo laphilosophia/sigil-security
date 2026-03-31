@@ -4,4 +4,4 @@
 
 ### Major Changes
 
-- Initial Release for all
+- Experimental browser SDK implementation for token storage, refresh, multi-tab sync, leader election, and fetch interception.

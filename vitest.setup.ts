@@ -8,12 +8,20 @@ if (typeof (globalThis as unknown as { crypto?: Crypto }).crypto === 'undefined'
   })
 }
 
+if (typeof (globalThis as { location?: URL }).location === 'undefined') {
+  Object.defineProperty(globalThis, 'location', {
+    value: new URL('https://example.com/app'),
+    writable: true,
+    configurable: true,
+  })
+}
+
 // #region agent log — runtime evidence for crypto/globalThis (hypotheses H1–H5)
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 const root = join(fileURLToPath(import.meta.url), '..')
-const dir = join(root, '.cursor')
+const dir = join(root, 'logs')
 const logPath = join(dir, 'debug.log')
 const payload = {
   hypothesisId: 'H1-H5',

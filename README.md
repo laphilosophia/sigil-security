@@ -29,8 +29,8 @@ Sigil is a monorepo with strict architectural layer separation:
 | `@sigil-security/core`    | Cryptographic Primitive | Token generation/validation, HMAC, HKDF, constant-time ops, one-shot tokens. **Zero dependencies.** |
 | `@sigil-security/policy`  | Validation Policies     | Fetch Metadata, Origin/Referer, context binding, risk tiers, Browser/API mode detection.            |
 | `@sigil-security/runtime` | Framework Adapters      | Express, Fastify, Elysia, native fetch middleware.                                                   |
-| `@sigil-security/ops`     | Telemetry (Optional)    | Pluggable metrics, anomaly detection, structured logging, SIEM export.                              |
-| `@sigil-security/client`  | Browser SDK             | Silent refresh, multi-tab sync (BroadcastChannel), leader election, token storage.                  |
+| `@sigil-security/ops`     | Telemetry (Optional)    | Experimental observability wrapper with pluggable metrics, anomaly detection, and structured logs.  |
+| `@sigil-security/client`  | Browser SDK             | Experimental browser SDK with silent refresh, multi-tab sync, leader election, and fetch helpers.   |
 
 **Dependency direction (one-way only):** `client → runtime → policy → core`
 
@@ -91,16 +91,17 @@ Traditional CSRF protection relies on server-side state, which introduces latenc
 
 ## Project Status
 
-**Status:** Stable — v1.0.0  
-**Specifications:** Production-Ready (Phase 7 Complete)
+**Status:** Active implementation  
+**Current Reality:** `core`, `policy`, and `runtime` are implemented and verified locally; `client` and `ops` are implemented but still marked experimental; Phase 6 hardening and release alignment remain open.
 
 **Architecture:**
 
 - Monorepo with pnpm workspaces
 - TypeScript strict mode
 - ESM + CJS dual output via tsup
-- vitest for testing and benchmarks
+- vitest for unit and integration testing
 - GitHub Actions CI
+- Oak and Hono runtime adapters intentionally remain disabled pending separate security remediation
 
 ---
 

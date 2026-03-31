@@ -48,6 +48,7 @@ export default tseslint.config(
   {
     files: ['**/__tests__/**/*.ts', '**/*.test.ts', '**/*.spec.ts'],
     rules: {
+      '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
