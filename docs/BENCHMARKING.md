@@ -43,15 +43,15 @@ Measured locally with `pnpm run test:bench` on the current Node 18+ toolchain:
 
 | Operation | Target | Baseline | Status |
 | --------- | ------ | -------- | ------ |
-| Token generation | `< 100µs` | `66.4µs` | Meets target |
-| Token validation | `< 50µs` | `37.7µs` | Meets target |
-| HMAC sign | `< 30µs` | `24.8µs` | Meets target |
-| HMAC verify | `< 30µs` | `24.0µs` | Meets target |
-| HKDF key derivation (warm cache) | `< 50µs` | `0.8µs` | Meets target |
-| HKDF key derivation (cold reference) | `reference` | `115.8µs` | Above target |
-| One-shot validation | `< 80µs` | `70.2µs` | Meets target |
-| base64url encode | `< 5µs` | `1.9µs` | Meets target |
-| base64url decode | `< 5µs` | `3.5µs` | Meets target |
+| Token generation | `< 100µs` | `72.2µs` | Meets target |
+| Token validation | `< 50µs` | `38.9µs` | Meets target |
+| HMAC sign | `< 30µs` | `25.2µs` | Meets target |
+| HMAC verify | `< 30µs` | `27.1µs` | Meets target |
+| HKDF key derivation (warm cache) | `< 50µs` | `2.9µs` | Meets target |
+| HKDF key derivation (cold reference) | `reference` | `129.9µs` | Above target |
+| One-shot validation | `< 80µs` | `78.4µs` | Meets target |
+| base64url encode | `< 5µs` | `2.2µs` | Meets target |
+| base64url decode | `< 5µs` | `4.8µs` | Meets target |
 
 ## Notes
 

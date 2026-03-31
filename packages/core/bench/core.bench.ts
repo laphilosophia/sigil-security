@@ -44,13 +44,12 @@ const hashedAction = await computeAction(provider, action)
 const signKey = await deriveSigningKey(provider, masterSecret, 1, 'csrf')
 await deriveSigningKey(provider, masterSecret, 7, 'csrf')
 const signature = await provider.sign(signKey, payload)
+const oneShotBenchmarkCache = createNonceCache()
+const ONESHOT_BENCHMARK_FIXTURE_COUNT = 32_768
 
-const oneShotFixtures: Array<{
-  readonly token: string
-  readonly nonceCache: ReturnType<typeof createNonceCache>
-}> = []
+const oneShotFixtures: string[] = []
 
-for (let index = 0; index < 64; index += 1) {
+for (let index = 0; index < ONESHOT_BENCHMARK_FIXTURE_COUNT; index += 1) {
   const tokenResult = await generateOneShotToken(
     provider,
     oneShotKey,
@@ -64,10 +63,7 @@ for (let index = 0; index < 64; index += 1) {
     throw new Error(`Benchmark setup failed: ${tokenResult.reason}`)
   }
 
-  oneShotFixtures.push({
-    token: tokenResult.token,
-    nonceCache: createNonceCache(),
-  })
+  oneShotFixtures.push(tokenResult.token)
 }
 
 let oneShotCursor = 0
@@ -122,17 +118,17 @@ describe('core benchmarks', () => {
 
   bench('one-shot validation', async () => {
     const fixture = oneShotFixtures[oneShotCursor]
-    oneShotCursor = (oneShotCursor + 1) % oneShotFixtures.length
     if (fixture === undefined) {
       throw new Error('Benchmark setup failed: missing one-shot fixture')
     }
+    oneShotCursor += 1
 
     await validateOneShotToken(
       provider,
       oneShotKey,
-      fixture.token,
+      fixture,
       action,
-      fixture.nonceCache,
+      oneShotBenchmarkCache,
       undefined,
       undefined,
       now,

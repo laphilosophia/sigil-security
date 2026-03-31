@@ -116,6 +116,35 @@ describe('WebCryptoCryptoProvider', () => {
       const mac2 = await provider.sign(key2, data)
       expect(new Uint8Array(mac1)).toEqual(new Uint8Array(mac2))
     })
+
+    it('should derive a new key when the same master buffer bytes are mutated', async () => {
+      const masterBytes = globalThis.crypto.getRandomValues(new Uint8Array(32))
+      const original = masterBytes.slice()
+      const key1 = await provider.deriveKey(masterBytes.buffer, 'sigil-v1', 'info')
+
+      masterBytes[0] = (masterBytes[0] ?? 0) ^ 0xff
+
+      const key2 = await provider.deriveKey(masterBytes.buffer, 'sigil-v1', 'info')
+      const data = new Uint8Array([1, 2, 3, 4])
+      const mac1 = await provider.sign(key1, data)
+      const mac2 = await provider.sign(key2, data)
+
+      expect(new Uint8Array(mac1)).not.toEqual(new Uint8Array(mac2))
+
+      masterBytes.set(original)
+    })
+
+    it('should keep salt and info cache keys distinct when inputs contain NUL characters', async () => {
+      const master = globalThis.crypto.getRandomValues(new Uint8Array(32)).buffer
+      const key1 = await provider.deriveKey(master, 'a\u0000', 'b')
+      const key2 = await provider.deriveKey(master, 'a', '\u0000b')
+
+      const data = new Uint8Array([1, 2, 3, 4])
+      const mac1 = await provider.sign(key1, data)
+      const mac2 = await provider.sign(key2, data)
+
+      expect(new Uint8Array(mac1)).not.toEqual(new Uint8Array(mac2))
+    })
   })
 
   describe('sign / verify (HMAC-SHA256)', () => {

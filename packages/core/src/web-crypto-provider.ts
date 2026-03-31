@@ -1,6 +1,7 @@
 // @sigil-security/core — WebCrypto-based CryptoProvider implementation
 
 import type { CryptoProvider } from './crypto-provider.js'
+import { toBase64Url } from './encoding.js'
 
 /**
  * Default CryptoProvider implementation using the WebCrypto API.
@@ -15,12 +16,9 @@ import type { CryptoProvider } from './crypto-provider.js'
 export class WebCryptoCryptoProvider implements CryptoProvider {
   private readonly encoder = new TextEncoder()
 
-  private readonly hkdfBaseKeyCache = new WeakMap<ArrayBuffer, Promise<CryptoKey>>()
+  private readonly hkdfBaseKeyCache = new Map<string, Promise<CryptoKey>>()
 
-  private readonly hkdfDerivedKeyCache = new WeakMap<
-    ArrayBuffer,
-    Map<string, Promise<CryptoKey>>
-  >()
+  private readonly hkdfDerivedKeyCache = new Map<string, Map<string, Map<string, Promise<CryptoKey>>>>()
 
   private readonly encodedStringCache = new Map<string, BufferSource>()
 
@@ -35,8 +33,12 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
     return encoded
   }
 
-  private getHkdfBaseKey(master: ArrayBuffer): Promise<CryptoKey> {
-    const cached = this.hkdfBaseKeyCache.get(master)
+  private getMasterCacheKey(master: ArrayBuffer): string {
+    return toBase64Url(new Uint8Array(master))
+  }
+
+  private getHkdfBaseKey(masterKey: string, master: ArrayBuffer): Promise<CryptoKey> {
+    const cached = this.hkdfBaseKeyCache.get(masterKey)
     if (cached !== undefined) {
       return cached
     }
@@ -44,23 +46,31 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
     const importedKey = globalThis.crypto.subtle
       .importKey('raw', master, { name: 'HKDF' }, false, ['deriveKey'])
       .catch((error: unknown) => {
-        this.hkdfBaseKeyCache.delete(master)
+        this.hkdfBaseKeyCache.delete(masterKey)
         throw error
       })
 
-    this.hkdfBaseKeyCache.set(master, importedKey)
+    this.hkdfBaseKeyCache.set(masterKey, importedKey)
     return importedKey
   }
 
-  private getDerivedKeyCache(master: ArrayBuffer): Map<string, Promise<CryptoKey>> {
-    const cached = this.hkdfDerivedKeyCache.get(master)
-    if (cached !== undefined) {
-      return cached
+  private getDerivedKeyCache(
+    masterKey: string,
+    salt: string,
+  ): Map<string, Promise<CryptoKey>> {
+    let masterCache = this.hkdfDerivedKeyCache.get(masterKey)
+    if (masterCache === undefined) {
+      masterCache = new Map<string, Map<string, Promise<CryptoKey>>>()
+      this.hkdfDerivedKeyCache.set(masterKey, masterCache)
     }
 
-    const derivedKeys = new Map<string, Promise<CryptoKey>>()
-    this.hkdfDerivedKeyCache.set(master, derivedKeys)
-    return derivedKeys
+    let saltCache = masterCache.get(salt)
+    if (saltCache === undefined) {
+      saltCache = new Map<string, Promise<CryptoKey>>()
+      masterCache.set(salt, saltCache)
+    }
+
+    return saltCache
   }
 
   /**
@@ -89,14 +99,14 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
    * - Output: HMAC-SHA256 key, 256-bit, non-extractable
    */
   async deriveKey(master: ArrayBuffer, salt: string, info: string): Promise<CryptoKey> {
-    const cacheKey = `${salt}\u0000${info}`
-    const derivedKeyCache = this.getDerivedKeyCache(master)
-    const cached = derivedKeyCache.get(cacheKey)
+    const masterKey = this.getMasterCacheKey(master)
+    const derivedKeyCache = this.getDerivedKeyCache(masterKey, salt)
+    const cached = derivedKeyCache.get(info)
     if (cached !== undefined) {
       return cached
     }
 
-    const baseKey = await this.getHkdfBaseKey(master)
+    const baseKey = await this.getHkdfBaseKey(masterKey, master)
 
     const derivedKey = globalThis.crypto.subtle
       .deriveKey(
@@ -112,11 +122,11 @@ export class WebCryptoCryptoProvider implements CryptoProvider {
         ['sign', 'verify'],
       )
       .catch((error: unknown) => {
-        derivedKeyCache.delete(cacheKey)
+        derivedKeyCache.delete(info)
         throw error
       })
 
-    derivedKeyCache.set(cacheKey, derivedKey)
+    derivedKeyCache.set(info, derivedKey)
     return derivedKey
   }
 
